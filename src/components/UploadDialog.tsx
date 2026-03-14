@@ -110,7 +110,6 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
             </Button>
           </div>
           <Input placeholder="Название видео *" value={title} onChange={(e) => setTitle(e.target.value)} className="bg-surface border-border text-foreground" />
-          <Input placeholder="Имя канала" value={channelName} onChange={(e) => setChannelName(e.target.value)} className="bg-surface border-border text-foreground" />
           <Textarea placeholder="Описание" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-surface border-border text-foreground resize-none" rows={3} />
           <Button onClick={handleUpload} disabled={uploading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
             {uploading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Загрузка...</> : "Загрузить"}
