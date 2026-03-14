@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import WatchPage from "./pages/WatchPage";
 import ChatPage from "./pages/ChatPage";
+import ChannelPage from "./pages/ChannelPage";
+import ProfileEditPage from "./pages/ProfileEditPage";
 import { AuthPage } from "./pages/AuthPage";
 
 const queryClient = new QueryClient();
