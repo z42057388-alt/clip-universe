@@ -14,6 +14,8 @@ interface Video {
   video_url: string;
   thumbnail_url: string | null;
   views: number;
+  likes: number;
+  dislikes: number;
   channel_name: string;
   created_at: string;
   user_id: string | null;
