@@ -56,6 +56,9 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
               <button className="p-2 rounded-full hover:bg-surface-hover transition-colors">
                 <Bell className="w-5 h-5 text-foreground" />
               </button>
+              <Link to={`/channel/${user.id}`} className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="Мой канал">
+                <User className="w-5 h-5 text-foreground" />
+              </Link>
               <button onClick={signOut} className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="Выйти">
                 <LogOut className="w-5 h-5 text-foreground" />
               </button>
