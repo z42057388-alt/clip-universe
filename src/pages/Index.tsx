@@ -26,7 +26,7 @@ const Index = () => {
     const fetchVideos = async () => {
       const { data } = await supabase
         .from("videos")
-        .select("id, title, thumbnail_url, channel_name, views, created_at")
+        .select("id, title, thumbnail_url, channel_name, views, created_at, user_id")
         .order("created_at", { ascending: false });
       if (data) setVideos(data);
       setLoading(false);
