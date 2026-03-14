@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import WatchPage from "./pages/WatchPage";
 import ChatPage from "./pages/ChatPage";
+import ChannelPage from "./pages/ChannelPage";
+import ProfileEditPage from "./pages/ProfileEditPage";
 import { AuthPage } from "./pages/AuthPage";
 
 const queryClient = new QueryClient();
@@ -23,6 +25,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/watch/:id" element={<WatchPage />} />
             <Route path="/chat" element={<ChatPage />} />
+            <Route path="/channel/:userId" element={<ChannelPage />} />
+            <Route path="/profile/edit" element={<ProfileEditPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

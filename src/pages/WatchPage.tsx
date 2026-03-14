@@ -149,11 +149,21 @@ const WatchPage = () => {
         <h1 className="text-xl font-bold text-foreground mb-2">{video.title}</h1>
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold">{video.channel_name.charAt(0).toUpperCase()}</span>
-            </div>
+            {video.user_id ? (
+              <Link to={`/channel/${video.user_id}`} className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:opacity-80 transition-opacity">
+                <span className="text-primary-foreground font-bold">{video.channel_name.charAt(0).toUpperCase()}</span>
+              </Link>
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold">{video.channel_name.charAt(0).toUpperCase()}</span>
+              </div>
+            )}
             <div>
-              <p className="text-sm font-medium text-foreground">{video.channel_name}</p>
+              {video.user_id ? (
+                <Link to={`/channel/${video.user_id}`} className="text-sm font-medium text-foreground hover:text-primary transition-colors">{video.channel_name}</Link>
+              ) : (
+                <p className="text-sm font-medium text-foreground">{video.channel_name}</p>
+              )}
               <p className="text-xs text-muted-foreground">
                 {formatViews(video.views)} просмотров • {formatDistanceToNow(new Date(video.created_at), { addSuffix: true, locale: ru })}
               </p>

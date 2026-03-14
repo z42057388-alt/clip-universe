@@ -11,6 +11,7 @@ interface Video {
   channel_name: string;
   views: number;
   created_at: string;
+  user_id: string | null;
 }
 
 const categories = ["Все", "Музыка", "Игры", "Новости", "Спорт", "Фильмы", "Обучение"];
@@ -25,7 +26,7 @@ const Index = () => {
     const fetchVideos = async () => {
       const { data } = await supabase
         .from("videos")
-        .select("id, title, thumbnail_url, channel_name, views, created_at")
+        .select("id, title, thumbnail_url, channel_name, views, created_at, user_id")
         .order("created_at", { ascending: false });
       if (data) setVideos(data);
       setLoading(false);
@@ -84,7 +85,7 @@ const Index = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {videos.map((video) => (
-                <VideoCard key={video.id} {...video} createdAt={video.created_at} thumbnailUrl={video.thumbnail_url} channelName={video.channel_name} />
+                <VideoCard key={video.id} {...video} createdAt={video.created_at} thumbnailUrl={video.thumbnail_url} channelName={video.channel_name} userId={video.user_id} />
               ))}
             </div>
           )}
