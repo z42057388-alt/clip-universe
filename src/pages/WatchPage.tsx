@@ -31,6 +31,8 @@ const WatchPage = () => {
   const { id } = useParams<{ id: string }>();
   const [video, setVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userReaction, setUserReaction] = useState<string | null>(null);
+  const [reactionLoading, setReactionLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
