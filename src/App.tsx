@@ -25,6 +25,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/watch/:id" element={<WatchPage />} />
             <Route path="/chat" element={<ChatPage />} />
+            <Route path="/channel/:userId" element={<ChannelPage />} />
+            <Route path="/profile/edit" element={<ProfileEditPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
