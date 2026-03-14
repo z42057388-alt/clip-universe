@@ -14,6 +14,8 @@ interface Video {
   video_url: string;
   thumbnail_url: string | null;
   views: number;
+  likes: number;
+  dislikes: number;
   channel_name: string;
   created_at: string;
   user_id: string | null;
@@ -29,6 +31,8 @@ const WatchPage = () => {
   const { id } = useParams<{ id: string }>();
   const [video, setVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userReaction, setUserReaction] = useState<string | null>(null);
+  const [reactionLoading, setReactionLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -37,14 +41,60 @@ const WatchPage = () => {
     const fetchVideo = async () => {
       const { data, error } = await supabase.from("videos").select("*").eq("id", id).single();
       if (!error && data) {
-        setVideo(data);
-        // Increment views
+        setVideo(data as Video);
         await supabase.from("videos").update({ views: data.views + 1 }).eq("id", id);
       }
       setLoading(false);
     };
     fetchVideo();
   }, [id]);
+
+  useEffect(() => {
+    if (!id || !user) return;
+    const fetchReaction = async () => {
+      const { data } = await supabase
+        .from("video_reactions")
+        .select("reaction_type")
+        .eq("video_id", id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data) setUserReaction(data.reaction_type);
+    };
+    fetchReaction();
+  }, [id, user]);
+
+  const handleReaction = async (type: "like" | "dislike") => {
+    if (!user) {
+      toast({ title: "Войдите в аккаунт", description: "Нужна авторизация", variant: "destructive" });
+      return;
+    }
+    if (!id || reactionLoading) return;
+    setReactionLoading(true);
+
+    try {
+      if (userReaction === type) {
+        // Remove reaction
+        await supabase.from("video_reactions").delete().eq("video_id", id).eq("user_id", user.id);
+        setUserReaction(null);
+        setVideo(prev => prev ? { ...prev, [type === "like" ? "likes" : "dislikes"]: Math.max(0, prev[type === "like" ? "likes" : "dislikes"] - 1) } : prev);
+      } else {
+        // Upsert reaction
+        const oldReaction = userReaction;
+        await supabase.from("video_reactions").upsert({ video_id: id, user_id: user.id, reaction_type: type }, { onConflict: "video_id,user_id" });
+        setUserReaction(type);
+        setVideo(prev => {
+          if (!prev) return prev;
+          const updated = { ...prev };
+          updated[type === "like" ? "likes" : "dislikes"] += 1;
+          if (oldReaction) updated[oldReaction === "like" ? "likes" : "dislikes"] = Math.max(0, updated[oldReaction === "like" ? "likes" : "dislikes"] - 1);
+          return updated;
+        });
+      }
+    } catch {
+      toast({ title: "Ошибка", variant: "destructive" });
+    }
+    setReactionLoading(false);
+  };
 
   const handleChatRequest = async () => {
     if (!user) {
@@ -110,11 +160,19 @@ const WatchPage = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 bg-surface-hover rounded-full hover:bg-accent transition-colors text-foreground text-sm">
-              <ThumbsUp className="w-4 h-4" /> Нравится
+            <button
+              onClick={() => handleReaction("like")}
+              disabled={reactionLoading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors text-sm ${userReaction === "like" ? "bg-primary text-primary-foreground" : "bg-surface-hover hover:bg-accent text-foreground"}`}
+            >
+              <ThumbsUp className="w-4 h-4" /> {video.likes > 0 ? video.likes : ""}
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-surface-hover rounded-full hover:bg-accent transition-colors text-foreground text-sm">
-              <ThumbsDown className="w-4 h-4" />
+            <button
+              onClick={() => handleReaction("dislike")}
+              disabled={reactionLoading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors text-sm ${userReaction === "dislike" ? "bg-destructive text-destructive-foreground" : "bg-surface-hover hover:bg-accent text-foreground"}`}
+            >
+              <ThumbsDown className="w-4 h-4" /> {video.dislikes > 0 ? video.dislikes : ""}
             </button>
             <button className="flex items-center gap-2 px-4 py-2 bg-surface-hover rounded-full hover:bg-accent transition-colors text-foreground text-sm">
               <Share2 className="w-4 h-4" /> Поделиться

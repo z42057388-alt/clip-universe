@@ -100,12 +100,46 @@ export type Database = {
         }
         Relationships: []
       }
+      video_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          reaction_type: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reaction_type: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reaction_type?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_reactions_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       videos: {
         Row: {
           channel_name: string
           created_at: string
           description: string | null
+          dislikes: number
           id: string
+          likes: number
           thumbnail_url: string | null
           title: string
           updated_at: string
@@ -117,7 +151,9 @@ export type Database = {
           channel_name?: string
           created_at?: string
           description?: string | null
+          dislikes?: number
           id?: string
+          likes?: number
           thumbnail_url?: string | null
           title: string
           updated_at?: string
@@ -129,7 +165,9 @@ export type Database = {
           channel_name?: string
           created_at?: string
           description?: string | null
+          dislikes?: number
           id?: string
+          likes?: number
           thumbnail_url?: string | null
           title?: string
           updated_at?: string
