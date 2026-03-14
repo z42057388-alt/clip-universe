@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,17 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
   const videoInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!open) return;
+    const loadProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase.from("profiles").select("username").eq("user_id", user.id).maybeSingle();
+      if (profile?.username) setChannelName(profile.username);
+    };
+    loadProfile();
+  }, [open]);
 
   const handleUpload = async () => {
     if (!videoFile || !title.trim()) {
