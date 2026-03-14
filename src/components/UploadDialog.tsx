@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,17 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
   const videoInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!open) return;
+    const loadProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase.from("profiles").select("username").eq("user_id", user.id).maybeSingle();
+      if (profile?.username) setChannelName(profile.username);
+    };
+    loadProfile();
+  }, [open]);
 
   const handleUpload = async () => {
     if (!videoFile || !title.trim()) {
@@ -99,7 +110,6 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
             </Button>
           </div>
           <Input placeholder="Название видео *" value={title} onChange={(e) => setTitle(e.target.value)} className="bg-surface border-border text-foreground" />
-          <Input placeholder="Имя канала" value={channelName} onChange={(e) => setChannelName(e.target.value)} className="bg-surface border-border text-foreground" />
           <Textarea placeholder="Описание" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-surface border-border text-foreground resize-none" rows={3} />
           <Button onClick={handleUpload} disabled={uploading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
             {uploading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Загрузка...</> : "Загрузить"}
