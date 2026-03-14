@@ -11,6 +11,7 @@ interface Video {
   channel_name: string;
   views: number;
   created_at: string;
+  user_id: string | null;
 }
 
 const categories = ["Все", "Музыка", "Игры", "Новости", "Спорт", "Фильмы", "Обучение"];
