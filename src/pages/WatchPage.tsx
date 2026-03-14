@@ -160,11 +160,19 @@ const WatchPage = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 bg-surface-hover rounded-full hover:bg-accent transition-colors text-foreground text-sm">
-              <ThumbsUp className="w-4 h-4" /> Нравится
+            <button
+              onClick={() => handleReaction("like")}
+              disabled={reactionLoading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors text-sm ${userReaction === "like" ? "bg-primary text-primary-foreground" : "bg-surface-hover hover:bg-accent text-foreground"}`}
+            >
+              <ThumbsUp className="w-4 h-4" /> {video.likes > 0 ? video.likes : ""}
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-surface-hover rounded-full hover:bg-accent transition-colors text-foreground text-sm">
-              <ThumbsDown className="w-4 h-4" />
+            <button
+              onClick={() => handleReaction("dislike")}
+              disabled={reactionLoading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors text-sm ${userReaction === "dislike" ? "bg-destructive text-destructive-foreground" : "bg-surface-hover hover:bg-accent text-foreground"}`}
+            >
+              <ThumbsDown className="w-4 h-4" /> {video.dislikes > 0 ? video.dislikes : ""}
             </button>
             <button className="flex items-center gap-2 px-4 py-2 bg-surface-hover rounded-full hover:bg-accent transition-colors text-foreground text-sm">
               <Share2 className="w-4 h-4" /> Поделиться
