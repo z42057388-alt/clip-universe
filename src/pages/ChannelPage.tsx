@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { VideoCard } from "@/components/VideoCard";
 import { ArrowLeft, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { SubscribeButton } from "@/components/SubscribeButton";
 
 interface Profile {
   user_id: string;
