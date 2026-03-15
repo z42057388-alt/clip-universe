@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ThumbsUp, ThumbsDown, Share2, ArrowLeft, MessageCircle } from "lucide-react";
+import { CommentSection } from "@/components/CommentSection";
+import { SubscribeButton } from "@/components/SubscribeButton";
 import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
