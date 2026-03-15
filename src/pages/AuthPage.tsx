@@ -64,6 +64,7 @@ export const AuthPage = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            maxLength={1000}
             className="bg-surface border-border text-foreground"
           />
           <Input
