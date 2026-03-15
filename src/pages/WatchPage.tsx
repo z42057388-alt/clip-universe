@@ -199,6 +199,16 @@ const WatchPage = () => {
             <p className="text-sm text-foreground whitespace-pre-wrap">{video.description}</p>
           </div>
         )}
+
+        {/* Subscribe button */}
+        {video.user_id && (
+          <div className="mt-4">
+            <SubscribeButton channelId={video.user_id} showCount />
+          </div>
+        )}
+
+        {/* Comments */}
+        <CommentSection videoId={video.id} />
       </div>
     </div>
   );

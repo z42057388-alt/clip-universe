@@ -77,6 +77,7 @@ const ChannelPage = () => {
               )}
             </div>
             <p className="text-sm text-muted-foreground">{videos.length} видео</p>
+            {userId && <SubscribeButton channelId={userId} showCount />}
           </div>
         </div>
 
