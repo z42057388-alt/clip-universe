@@ -73,6 +73,38 @@ export type Database = {
           },
         ]
       }
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -97,6 +129,27 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          channel_id: string
+          created_at: string
+          id: string
+          subscriber_id: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          id?: string
+          subscriber_id: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          id?: string
+          subscriber_id?: string
         }
         Relationships: []
       }
