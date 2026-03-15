@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { VideoCard } from "@/components/VideoCard";
 import { ArrowLeft, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { SubscribeButton } from "@/components/SubscribeButton";
 
 interface Profile {
   user_id: string;
@@ -76,6 +77,7 @@ const ChannelPage = () => {
               )}
             </div>
             <p className="text-sm text-muted-foreground">{videos.length} видео</p>
+            {userId && <SubscribeButton channelId={userId} showCount />}
           </div>
         </div>
 

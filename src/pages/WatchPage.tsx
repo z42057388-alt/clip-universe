@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ThumbsUp, ThumbsDown, Share2, ArrowLeft, MessageCircle } from "lucide-react";
+import { CommentSection } from "@/components/CommentSection";
+import { SubscribeButton } from "@/components/SubscribeButton";
 import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
@@ -197,6 +199,16 @@ const WatchPage = () => {
             <p className="text-sm text-foreground whitespace-pre-wrap">{video.description}</p>
           </div>
         )}
+
+        {/* Subscribe button */}
+        {video.user_id && (
+          <div className="mt-4">
+            <SubscribeButton channelId={video.user_id} showCount />
+          </div>
+        )}
+
+        {/* Comments */}
+        <CommentSection videoId={video.id} />
       </div>
     </div>
   );
