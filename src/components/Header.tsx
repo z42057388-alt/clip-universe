@@ -48,6 +48,9 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
           <button onClick={() => setUploadOpen(true)} className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="Загрузить видео">
             <Upload className="w-5 h-5 text-foreground" />
           </button>
+          <Link to="/ai-chat" className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="AI Ассистент">
+            <Bot className="w-5 h-5 text-foreground" />
+          </Link>
           <Link to="/chat" className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="Чаты">
             <MessageCircle className="w-5 h-5 text-foreground" />
           </Link>
