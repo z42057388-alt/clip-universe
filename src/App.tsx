@@ -29,6 +29,7 @@ const App = () => (
             <Route path="/channel/:userId" element={<ChannelPage />} />
             <Route path="/profile/edit" element={<ProfileEditPage />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/ai-chat" element={<AIChatPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
