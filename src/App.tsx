@@ -11,6 +11,7 @@ import ChatPage from "./pages/ChatPage";
 import ChannelPage from "./pages/ChannelPage";
 import ProfileEditPage from "./pages/ProfileEditPage";
 import { AuthPage } from "./pages/AuthPage";
+import AIChatPage from "./pages/AIChatPage";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/channel/:userId" element={<ChannelPage />} />
             <Route path="/profile/edit" element={<ProfileEditPage />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/ai-chat" element={<AIChatPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
