@@ -11,6 +11,7 @@ import ChatPage from "./pages/ChatPage";
 import ChannelPage from "./pages/ChannelPage";
 import ProfileEditPage from "./pages/ProfileEditPage";
 import { AuthPage } from "./pages/AuthPage";
+import AIChatPage from "./pages/AIChatPage";
 
 const queryClient = new QueryClient();
 
