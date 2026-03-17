@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Send, Check, X, ArrowLeft, MessageCircle } from "lucide-react";
+import { Send, Check, X, ArrowLeft, MessageCircle, Headphones } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Link } from "react-router-dom";
+
+const SUPPORT_USER_ID = "a3cda48f-8a2e-4137-97cd-07713b7366c4";
 
 interface Conversation {
   id: string;
@@ -33,6 +35,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (!user) return;
+    ensureSupportChat();
     fetchConversations();
 
     const channel = supabase
@@ -62,6 +65,14 @@ const ChatPage = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const ensureSupportChat = async () => {
+    try {
+      await supabase.functions.invoke("ensure-support-chat");
+    } catch (e) {
+      console.error("Failed to ensure support chat:", e);
+    }
+  };
 
   const fetchConversations = async () => {
     if (!user) return;
@@ -112,6 +123,9 @@ const ChatPage = () => {
     setNewMessage("");
   };
 
+  const isSupportConv = (conv: Conversation) =>
+    conv.requester_id === SUPPORT_USER_ID || conv.recipient_id === SUPPORT_USER_ID;
+
   if (!user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -125,7 +139,8 @@ const ChatPage = () => {
   }
 
   const pendingRequests = conversations.filter(c => c.status === "pending" && c.recipient_id === user.id);
-  const activeConvs = conversations.filter(c => c.status === "accepted");
+  const supportConvs = conversations.filter(c => c.status === "accepted" && isSupportConv(c));
+  const activeConvs = conversations.filter(c => c.status === "accepted" && !isSupportConv(c));
   const sentRequests = conversations.filter(c => c.status === "pending" && c.requester_id === user.id);
 
   return (
@@ -158,7 +173,32 @@ const ChatPage = () => {
           </div>
         )}
 
+        {/* Support section */}
+        {supportConvs.length > 0 && (
+          <div className="border-b border-border">
+            <p className="text-xs text-muted-foreground uppercase font-medium px-4 pt-3 pb-1">🛟 Поддержка</p>
+            {supportConvs.map((conv) => (
+              <button
+                key={conv.id}
+                onClick={() => setSelectedConv(conv)}
+                className={`w-full flex items-center gap-3 p-4 hover:bg-surface-hover transition-colors ${selectedConv?.id === conv.id ? "bg-surface-hover" : ""}`}
+              >
+                <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+                  <Headphones className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium text-foreground">Техническая поддержка</p>
+                  <p className="text-xs text-muted-foreground">Мы готовы помочь!</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto">
+          {activeConvs.length > 0 && (
+            <p className="text-xs text-muted-foreground uppercase font-medium px-4 pt-3 pb-1">Чаты</p>
+          )}
           {activeConvs.map((conv) => (
             <button
               key={conv.id}
@@ -200,10 +240,21 @@ const ChatPage = () => {
               <button onClick={() => setSelectedConv(null)} className="sm:hidden p-1">
                 <ArrowLeft className="w-5 h-5 text-foreground" />
               </button>
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xs">{selectedConv.other_username.charAt(0).toUpperCase()}</span>
-              </div>
-              <p className="text-foreground font-medium">{selectedConv.other_username}</p>
+              {isSupportConv(selectedConv) ? (
+                <>
+                  <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center">
+                    <Headphones className="w-4 h-4 text-white" />
+                  </div>
+                  <p className="text-foreground font-medium">Техническая поддержка</p>
+                </>
+              ) : (
+                <>
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                    <span className="text-primary-foreground font-bold text-xs">{selectedConv.other_username.charAt(0).toUpperCase()}</span>
+                  </div>
+                  <p className="text-foreground font-medium">{selectedConv.other_username}</p>
+                </>
+              )}
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.map((msg) => (
