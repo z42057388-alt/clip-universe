@@ -55,7 +55,8 @@ const ChatPage = () => {
     const channel = supabase
       .channel(`messages-${selectedConv.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `conversation_id=eq.${selectedConv.id}` }, (payload) => {
-        setMessages((prev) => [...prev, payload.new as Message]);
+        const newMsg = payload.new as Message;
+        setMessages((prev) => prev.some(m => m.id === newMsg.id) ? prev : [...prev, newMsg]);
       })
       .subscribe();
 
@@ -115,12 +116,17 @@ const ChatPage = () => {
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConv || !user) return;
-    await supabase.from("chat_messages").insert({
+    const content = newMessage.trim();
+    setNewMessage("");
+    const { data, error } = await supabase.from("chat_messages").insert({
       conversation_id: selectedConv.id,
       sender_id: user.id,
-      content: newMessage.trim(),
-    });
-    setNewMessage("");
+      content,
+    }).select().single();
+    if (data && !error) {
+      // Add immediately if not already added by realtime
+      setMessages((prev) => prev.some(m => m.id === data.id) ? prev : [...prev, data]);
+    }
   };
 
   const isSupportConv = (conv: Conversation) =>
