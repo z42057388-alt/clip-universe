@@ -115,12 +115,17 @@ const ChatPage = () => {
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConv || !user) return;
-    await supabase.from("chat_messages").insert({
+    const content = newMessage.trim();
+    setNewMessage("");
+    const { data, error } = await supabase.from("chat_messages").insert({
       conversation_id: selectedConv.id,
       sender_id: user.id,
-      content: newMessage.trim(),
-    });
-    setNewMessage("");
+      content,
+    }).select().single();
+    if (data && !error) {
+      // Add immediately if not already added by realtime
+      setMessages((prev) => prev.some(m => m.id === data.id) ? prev : [...prev, data]);
+    }
   };
 
   const isSupportConv = (conv: Conversation) =>
