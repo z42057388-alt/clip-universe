@@ -44,7 +44,7 @@ const WatchPage = () => {
       const { data, error } = await supabase.from("videos").select("*").eq("id", id).single();
       if (!error && data) {
         setVideo(data as Video);
-        await supabase.from("videos").update({ views: data.views + 1 }).eq("id", id);
+        await supabase.rpc("increment_video_views", { video_id: id });
       }
       setLoading(false);
     };

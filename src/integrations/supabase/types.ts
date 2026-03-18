@@ -291,6 +291,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      increment_video_views: { Args: { video_id: string }; Returns: undefined }
       is_conversation_participant: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
