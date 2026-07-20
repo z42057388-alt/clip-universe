@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+
+function safeNext(raw: string | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+}
 
 export const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,6 +20,17 @@ export const AuthPage = () => {
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const next = safeNext(params.get("next"));
+  const returnUrl = next ? `${window.location.origin}${next}` : window.location.origin;
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session && next) navigate(next, { replace: true });
+    });
+    return () => subscription.unsubscribe();
+  }, [next, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,11 +39,12 @@ export const AuthPage = () => {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (next) navigate(next, { replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { username: username || undefined } },
+          options: { data: { username: username || undefined }, emailRedirectTo: returnUrl },
         });
         if (error) throw error;
         toast({ title: "Аккаунт создан!", description: "Проверьте почту для подтверждения" });
@@ -91,7 +110,7 @@ export const AuthPage = () => {
           className="w-full"
           onClick={async () => {
             const { error } = await lovable.auth.signInWithOAuth("google", {
-              redirect_uri: window.location.origin,
+              redirect_uri: returnUrl,
             });
             if (error) toast({ title: "Ошибка", description: error.message, variant: "destructive" });
           }}
