@@ -26,6 +26,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
               <span className="text-primary-foreground font-bold text-sm">▶</span>
             </div>
             <span className="text-foreground font-roboto font-bold text-xl hidden sm:block">VidTube</span>
+            <span className="hidden md:block text-[10px] leading-tight text-muted-foreground border border-border rounded-full px-2 py-0.5">ZakharX community</span>
           </Link>
         </div>
 
