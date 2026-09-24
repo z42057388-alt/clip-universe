@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UploadDialog } from "./UploadDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { NotificationsBell } from "./NotificationsBell";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -57,9 +58,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
           </Link>
           {user ? (
             <>
-              <button className="p-2 rounded-full hover:bg-surface-hover transition-colors">
-                <Bell className="w-5 h-5 text-foreground" />
-              </button>
+              <NotificationsBell />
               <Link to={`/channel/${user.id}`} className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="Мой канал">
                 <User className="w-5 h-5 text-foreground" />
               </Link>
