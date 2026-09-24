@@ -179,6 +179,18 @@ const ChatPage = () => {
           </div>
         )}
 
+        {/* AI assistant */}
+        <div className="border-b border-border">
+          <p className="text-xs text-muted-foreground uppercase font-medium px-4 pt-3 pb-1">🤖 ИИ-ассистент</p>
+          <Link to="/ai-chat" className="flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">AI</div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">ИИ-ассистент</p>
+              <p className="text-xs text-muted-foreground truncate">Ответит на любой вопрос мгновенно</p>
+            </div>
+          </Link>
+        </div>
+
         {/* Support section */}
         {supportConvs.length > 0 && (
           <div className="border-b border-border">
