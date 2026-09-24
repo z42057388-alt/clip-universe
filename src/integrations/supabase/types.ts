@@ -70,6 +70,30 @@ export type Database = {
           },
         ]
       }
+      channel_collaborators: {
+        Row: {
+          channel_id: string
+          collaborator_id: string
+          created_at: string
+          id: string
+          status: string
+        }
+        Insert: {
+          channel_id: string
+          collaborator_id: string
+          created_at?: string
+          id?: string
+          status?: string
+        }
+        Update: {
+          channel_id?: string
+          collaborator_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       chat_conversations: {
         Row: {
           created_at: string
@@ -161,9 +185,41 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          message: string
+          read: boolean
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          message: string
+          read?: boolean
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          message?: string
+          read?: boolean
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          banner_url: string | null
+          bio: string | null
           created_at: string
           id: string
           updated_at: string
@@ -172,6 +228,8 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          banner_url?: string | null
+          bio?: string | null
           created_at?: string
           id?: string
           updated_at?: string
@@ -180,6 +238,8 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          banner_url?: string | null
+          bio?: string | null
           created_at?: string
           id?: string
           updated_at?: string

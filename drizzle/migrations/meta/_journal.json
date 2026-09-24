@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790233470671,
+      "tag": "0000_channel_collaborators_notifications",
+      "breakpoints": true
+    }
+  ]
+}
