@@ -64,6 +64,7 @@ export const AuthPage = () => {
             <span className="text-primary-foreground font-bold text-lg">▶</span>
           </div>
           <span className="text-foreground font-roboto font-bold text-2xl">VidTube</span>
+          <span className="text-[10px] leading-tight text-muted-foreground border border-border rounded-full px-2 py-0.5">ZakharX community</span>
         </div>
         <h2 className="text-foreground text-xl font-bold text-center mb-6">
           {isLogin ? "Войти" : "Регистрация"}
