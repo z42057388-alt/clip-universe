@@ -153,6 +153,7 @@ const ChannelPage = () => {
           <div className="flex-1 min-w-0 pt-8 sm:pt-12">
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">{profile.username}</h1>
+              <span className="text-muted-foreground text-sm truncate">@{profile.username}</span>
               {isOwner && (
                 <Link to="/profile/edit" className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="Редактировать">
                   <Settings className="w-4 h-4 text-muted-foreground" />
