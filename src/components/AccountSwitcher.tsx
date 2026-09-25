@@ -37,12 +37,8 @@ export const AccountSwitcher = () => {
 
   const addAccount = async () => {
     setOpen(false);
-    await supabaseSignOutKeepAccounts();
+    await signOut(); // сохранённые аккаунты остаются в списке
     navigate("/auth");
-  };
-
-  const supabaseSignOutKeepAccounts = async () => {
-    await signOut();
   };
 
   const Avatar = ({ url, name, size }: { url: string | null; name: string; size: string }) =>

@@ -18,9 +18,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setLoading(false);
+      if (session && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")) {
+        saveCurrentAccount(session);
+      }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
