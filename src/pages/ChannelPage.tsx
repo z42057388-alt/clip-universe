@@ -86,14 +86,14 @@ const ChannelPage = () => {
   }, [userId]);
 
   const invite = async () => {
-    const name = inviteName.trim();
+    const name = inviteName.trim().replace(/^@+/, "");
     if (!name || !userId) return;
     const { data: target } = await supabase.from("profiles").select("user_id, username").ilike("username", name).maybeSingle();
-    if (!target) return toast({ title: "Пользователь не найден", description: `Нет пользователя «${name}»`, variant: "destructive" });
+    if (!target) return toast({ title: "Пользователь не найден", description: `Нет канала с юзернеймом @${name}`, variant: "destructive" });
     if (target.user_id === userId) return toast({ title: "Нельзя пригласить себя", variant: "destructive" });
     const { error } = await supabase.from("channel_collaborators").insert({ channel_id: userId, collaborator_id: target.user_id });
     if (error) return toast({ title: "Не удалось пригласить", description: "Возможно, приглашение уже отправлено", variant: "destructive" });
-    toast({ title: "Приглашение отправлено", description: `${target.username} получит уведомление` });
+    toast({ title: "Приглашение отправлено", description: `@${target.username} получит уведомление` });
     setInviteName("");
     loadCollabs();
   };
@@ -153,6 +153,7 @@ const ChannelPage = () => {
           <div className="flex-1 min-w-0 pt-8 sm:pt-12">
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">{profile.username}</h1>
+              <span className="text-muted-foreground text-sm truncate">@{profile.username}</span>
               {isOwner && (
                 <Link to="/profile/edit" className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="Редактировать">
                   <Settings className="w-4 h-4 text-muted-foreground" />
@@ -243,7 +244,7 @@ const ChannelPage = () => {
                 <h2 className="font-medium text-foreground">Пригласить соавтора</h2>
                 <p className="text-xs text-muted-foreground">Введите имя пользователя VidTube — он получит уведомление с кнопкой «Принять».</p>
                 <div className="flex gap-2">
-                  <Input value={inviteName} onChange={(e) => setInviteName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && invite()} placeholder="Имя пользователя" className="bg-background border-border" />
+                  <Input value={inviteName} onChange={(e) => setInviteName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && invite()} placeholder="@юзернейм канала" className="bg-background border-border" />
                   <Button onClick={invite}><UserPlus className="w-4 h-4 mr-1" /> Пригласить</Button>
                 </div>
               </div>
@@ -256,7 +257,7 @@ const ChannelPage = () => {
                   <Link to={`/channel/${c.collaborator_id}`} className="w-10 h-10 rounded-full bg-primary flex items-center justify-center overflow-hidden">
                     {c.profile?.avatar_url ? <img src={c.profile.avatar_url} alt="" className="w-full h-full object-cover" /> : <span className="text-primary-foreground font-bold">{c.profile?.username?.charAt(0).toUpperCase()}</span>}
                   </Link>
-                  <Link to={`/channel/${c.collaborator_id}`} className="flex-1 text-foreground hover:underline">{c.profile?.username || "Пользователь"}</Link>
+                  <Link to={`/channel/${c.collaborator_id}`} className="flex-1 text-foreground hover:underline">@{c.profile?.username || "Пользователь"}</Link>
                   {c.status === "pending" && <span className="text-xs text-muted-foreground">Ожидает ответа</span>}
                   {(isOwner || user?.id === c.collaborator_id) && (
                     <button onClick={() => removeCollab(c.id)} className="p-1.5 rounded-full hover:bg-surface-hover" title="Убрать">
