@@ -1,9 +1,10 @@
-import { Menu, Search, Upload, Bell, User, MessageCircle, LogOut, Bot } from "lucide-react";
+import { Menu, Search, Upload, User, MessageCircle, Bot } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UploadDialog } from "./UploadDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationsBell } from "./NotificationsBell";
+import { AccountSwitcher } from "./AccountSwitcher";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -12,7 +13,7 @@ interface HeaderProps {
 export const Header = ({ onToggleSidebar }: HeaderProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -59,12 +60,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
           {user ? (
             <>
               <NotificationsBell />
-              <Link to={`/channel/${user.id}`} className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="Мой канал">
-                <User className="w-5 h-5 text-foreground" />
-              </Link>
-              <button onClick={signOut} className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="Выйти">
-                <LogOut className="w-5 h-5 text-foreground" />
-              </button>
+              <AccountSwitcher />
             </>
           ) : (
             <button onClick={() => navigate("/auth")} className="flex items-center gap-1.5 px-3 py-1.5 border border-primary/50 rounded-full text-primary text-sm hover:bg-primary/10 transition-colors">
