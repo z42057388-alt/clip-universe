@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { VideoCard } from "@/components/VideoCard";
-import { ArrowLeft, Settings, Search, UserPlus, X, Share2 } from "lucide-react";
+import { ArrowLeft, Settings, Search, UserPlus, X, Share2, BadgeCheck, ShieldCheck, Send } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SubscribeButton } from "@/components/SubscribeButton";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ interface Profile {
   avatar_url: string | null;
   created_at: string;
   bio: string | null;
+  is_verified?: boolean;
 }
 
 interface Video {
@@ -51,10 +52,14 @@ const ChannelPage = () => {
   const [inviteName, setInviteName] = useState("");
   const [bioDraft, setBioDraft] = useState("");
   const [editingBio, setEditingBio] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isVerifier, setIsVerifier] = useState(false);
+  const [targetIsVerifier, setTargetIsVerifier] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
   const isOwner = user?.id === userId;
+  const canVerify = isAdmin || isVerifier;
 
   const loadCollabs = async () => {
     if (!userId) return;
@@ -69,9 +74,19 @@ const ChannelPage = () => {
 
   useEffect(() => {
     if (!userId) return;
+    supabase.from("user_roles").select("user_id, role").in("user_id", [userId, user?.id || userId]).then(({ data }) => {
+      const r = data || [];
+      setIsAdmin(!!user && r.some((x) => x.user_id === user.id && x.role === "admin"));
+      setIsVerifier(!!user && r.some((x) => x.user_id === user.id && x.role === "verifier"));
+      setTargetIsVerifier(r.some((x) => x.user_id === userId && x.role === "verifier"));
+    });
+  }, [userId, user]);
+
+  useEffect(() => {
+    if (!userId) return;
     const load = async () => {
       const [profileRes, videosRes, subsRes] = await Promise.all([
-        supabase.from("profiles").select("user_id, username, avatar_url, created_at, bio").eq("user_id", userId).maybeSingle(),
+        supabase.from("profiles").select("user_id, username, avatar_url, created_at, bio, is_verified").eq("user_id", userId).maybeSingle(),
         supabase.from("videos").select("id, title, thumbnail_url, channel_name, views, likes, created_at").eq("user_id", userId),
         supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("channel_id", userId),
       ]);
@@ -109,6 +124,24 @@ const ChannelPage = () => {
     if (error) return toast({ title: "Не удалось сохранить", variant: "destructive" });
     setProfile((p) => (p ? { ...p, bio: bioDraft.trim() || null } : p));
     setEditingBio(false);
+  };
+
+  const toggleVerified = async () => {
+    if (!userId || !profile) return;
+    const next = !profile.is_verified;
+    const { error } = await supabase.rpc("set_verified", { _target: userId, _value: next });
+    if (error) return toast({ title: "Нет прав на выдачу галочки", variant: "destructive" });
+    setProfile({ ...profile, is_verified: next });
+    toast({ title: next ? "Галочка выдана" : "Галочка снята" });
+  };
+
+  const toggleVerifier = async () => {
+    if (!userId) return;
+    const next = !targetIsVerifier;
+    const { error } = await supabase.rpc("set_verifier", { _target: userId, _value: next });
+    if (error) return toast({ title: "Только главный администратор может это делать", variant: "destructive" });
+    setTargetIsVerifier(next);
+    toast({ title: next ? "Право выдачи галочек выдано" : "Право выдачи галочек забрано" });
   };
 
   const share = async () => {
@@ -153,6 +186,7 @@ const ChannelPage = () => {
           <div className="flex-1 min-w-0 pt-8 sm:pt-12">
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">{profile.username}</h1>
+              {profile.is_verified && <BadgeCheck className="w-5 h-5 text-primary shrink-0" aria-label="Подтверждённый канал" />}
               <span className="text-muted-foreground text-sm truncate">@{profile.username}</span>
               {isOwner && (
                 <Link to="/profile/edit" className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="Редактировать">
@@ -169,7 +203,24 @@ const ChannelPage = () => {
             {accepted.length > 0 && (
               <p className="text-xs text-muted-foreground mt-1">Соавторы: {accepted.map((c) => c.profile?.username).filter(Boolean).join(", ")}</p>
             )}
-            {userId && !isOwner && <SubscribeButton channelId={userId} showCount />}
+            <div className="flex flex-wrap gap-2 mt-2">
+              {userId && !isOwner && <SubscribeButton channelId={userId} showCount />}
+              {isOwner && !profile.is_verified && (
+                <a href={`https://t.me/Communication_bot6373bot?start=verify_${profile.username}`} target="_blank" rel="noreferrer">
+                  <Button size="sm" variant="outline"><Send className="w-4 h-4 mr-1" /> Запросить галочку в Telegram</Button>
+                </a>
+              )}
+              {canVerify && (
+                <Button size="sm" variant="outline" onClick={toggleVerified}>
+                  <BadgeCheck className="w-4 h-4 mr-1" /> {profile.is_verified ? "Снять галочку" : "Выдать галочку"}
+                </Button>
+              )}
+              {isAdmin && !isOwner && (
+                <Button size="sm" variant="outline" onClick={toggleVerifier}>
+                  <ShieldCheck className="w-4 h-4 mr-1" /> {targetIsVerifier ? "Забрать право выдачи галочек" : "Дать право выдачи галочек"}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
