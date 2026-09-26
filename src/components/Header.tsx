@@ -1,9 +1,10 @@
-import { Menu, Search, Upload, Bell, User, MessageCircle, LogOut, Bot } from "lucide-react";
+import { Menu, Search, Upload, User, MessageCircle, Bot } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UploadDialog } from "./UploadDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationsBell } from "./NotificationsBell";
+import { AccountSwitcher } from "./AccountSwitcher";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
