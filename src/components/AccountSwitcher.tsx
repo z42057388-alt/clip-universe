@@ -4,6 +4,7 @@ import { Check, ChevronDown, LogOut, UserPlus, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getSavedAccounts, switchAccount, SavedAccount } from "@/lib/accounts";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export const AccountSwitcher = () => {
   const { user, signOut } = useAuth();
@@ -12,9 +13,20 @@ export const AccountSwitcher = () => {
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  const [coChannels, setCoChannels] = useState<{ user_id: string; username: string; avatar_url: string | null }[]>([]);
+
   useEffect(() => {
-    if (open) setAccounts(getSavedAccounts());
-  }, [open]);
+    if (!open) return;
+    setAccounts(getSavedAccounts());
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase.from("channel_collaborators").select("channel_id").eq("collaborator_id", user.id).eq("status", "accepted");
+      const ids = (data || []).map((d) => d.channel_id);
+      if (!ids.length) return setCoChannels([]);
+      const { data: profs } = await supabase.from("profiles").select("user_id, username, avatar_url").in("user_id", ids);
+      setCoChannels(profs || []);
+    })();
+  }, [open, user]);
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -80,6 +92,21 @@ export const AccountSwitcher = () => {
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-foreground text-sm truncate">{a.username}</p>
                     <p className="text-muted-foreground text-xs truncate">{a.email}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {coChannels.length > 0 && (
+            <div className="py-1 border-t border-border max-h-48 overflow-y-auto">
+              <p className="px-3 pt-2 pb-1 text-xs text-muted-foreground">Каналы, где вы соавтор</p>
+              {coChannels.map((c) => (
+                <button key={c.user_id} onClick={() => { setOpen(false); navigate(`/channel/${c.user_id}`); }} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-surface-hover transition-colors">
+                  <Avatar url={c.avatar_url} name={c.username} size="w-9 h-9 text-sm" />
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-foreground text-sm truncate">{c.username}</p>
+                    <p className="text-muted-foreground text-xs truncate">@{c.username} · соавтор</p>
                   </div>
                 </button>
               ))}
