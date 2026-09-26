@@ -8,6 +8,13 @@
       "when": 1790233470671,
       "tag": "0000_channel_collaborators_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790401361101,
+      "tag": "0001_verification_roles",
+      "breakpoints": true
     }
   ]
 }
