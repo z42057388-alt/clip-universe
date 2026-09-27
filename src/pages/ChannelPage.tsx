@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
 
 interface Profile {
   user_id: string;
@@ -17,7 +18,14 @@ interface Profile {
   created_at: string;
   bio: string | null;
   is_verified?: boolean;
+  badges?: string[];
 }
+
+const BADGES = [
+  { id: "red", label: "Красная — аккаунт подтверждён VidTube", cls: "text-red-500" },
+  { id: "green", label: "Зелёная — у пользователя есть собственная платформа", cls: "text-green-500" },
+  { id: "purple", label: "Фиолетовая — участвовал в создании VidTube", cls: "text-purple-500" },
+];
 
 interface Video {
   id: string;
@@ -86,7 +94,7 @@ const ChannelPage = () => {
     if (!userId) return;
     const load = async () => {
       const [profileRes, videosRes, subsRes] = await Promise.all([
-        supabase.from("profiles").select("user_id, username, avatar_url, created_at, bio, is_verified").eq("user_id", userId).maybeSingle(),
+        supabase.from("profiles").select("user_id, username, avatar_url, created_at, bio, is_verified, badges").eq("user_id", userId).maybeSingle(),
         supabase.from("videos").select("id, title, thumbnail_url, channel_name, views, likes, created_at").eq("user_id", userId),
         supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("channel_id", userId),
       ]);
@@ -126,13 +134,14 @@ const ChannelPage = () => {
     setEditingBio(false);
   };
 
-  const toggleVerified = async () => {
+  const toggleBadge = async (id: string, value: boolean) => {
     if (!userId || !profile) return;
-    const next = !profile.is_verified;
-    const { error } = await supabase.rpc("set_verified", { _target: userId, _value: next });
+    const { error } = await supabase.rpc("set_badge", { _target: userId, _badge: id, _value: value });
     if (error) return toast({ title: "Нет прав на выдачу галочки", variant: "destructive" });
-    setProfile({ ...profile, is_verified: next });
-    toast({ title: next ? "Галочка выдана" : "Галочка снята" });
+    const cur = profile.badges || [];
+    const next = value ? [...cur.filter((x) => x !== id), id] : cur.filter((x) => x !== id);
+    setProfile({ ...profile, badges: next, is_verified: next.includes("red") });
+    toast({ title: value ? "Галочка выдана" : "Галочка снята" });
   };
 
   const toggleVerifier = async () => {
@@ -152,6 +161,7 @@ const ChannelPage = () => {
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><span className="text-muted-foreground">Загрузка...</span></div>;
   if (!profile) return <div className="min-h-screen bg-background flex items-center justify-center"><span className="text-muted-foreground">Канал не найден</span></div>;
 
+  const badges = profile.badges || [];
   const totalViews = videos.reduce((s, v) => s + (v.views || 0), 0);
   const totalLikes = videos.reduce((s, v) => s + (v.likes || 0), 0);
   const shown = videos
@@ -186,7 +196,9 @@ const ChannelPage = () => {
           <div className="flex-1 min-w-0 pt-8 sm:pt-12">
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">{profile.username}</h1>
-              {profile.is_verified && <BadgeCheck className="w-5 h-5 text-primary shrink-0" aria-label="Подтверждённый канал" />}
+              {BADGES.filter((b) => badges.includes(b.id)).map((b) => (
+                <span key={b.id} title={b.label}><BadgeCheck className={`w-5 h-5 shrink-0 ${b.cls}`} aria-label={b.label} /></span>
+              ))}
               <span className="text-muted-foreground text-sm truncate">@{profile.username}</span>
               {isOwner && (
                 <Link to="/profile/edit" className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="Редактировать">
@@ -211,9 +223,21 @@ const ChannelPage = () => {
                 </a>
               )}
               {canVerify && (
-                <Button size="sm" variant="outline" onClick={toggleVerified}>
-                  <BadgeCheck className="w-4 h-4 mr-1" /> {profile.is_verified ? "Снять галочку" : "Выдать галочку"}
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline"><BadgeCheck className="w-4 h-4 mr-1" /> Выдать галочку</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-72">
+                    <DropdownMenuLabel>Типы галочек</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {BADGES.map((b) => (
+                      <DropdownMenuCheckboxItem key={b.id} checked={badges.includes(b.id)} onSelect={(e) => e.preventDefault()} onCheckedChange={(v) => toggleBadge(b.id, !!v)}>
+                        <BadgeCheck className={`w-4 h-4 mr-2 shrink-0 ${b.cls}`} />
+                        <span className="text-sm">{b.label}</span>
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               {isAdmin && !isOwner && (
                 <Button size="sm" variant="outline" onClick={toggleVerifier}>
