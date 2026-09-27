@@ -161,6 +161,7 @@ const ChannelPage = () => {
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><span className="text-muted-foreground">Загрузка...</span></div>;
   if (!profile) return <div className="min-h-screen bg-background flex items-center justify-center"><span className="text-muted-foreground">Канал не найден</span></div>;
 
+  const badges = profile.badges || [];
   const totalViews = videos.reduce((s, v) => s + (v.views || 0), 0);
   const totalLikes = videos.reduce((s, v) => s + (v.likes || 0), 0);
   const shown = videos
