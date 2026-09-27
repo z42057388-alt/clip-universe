@@ -16,6 +16,8 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [channelName, setChannelName] = useState("");
+  const [channels, setChannels] = useState<{ user_id: string; username: string }[]>([]);
+  const [channelId, setChannelId] = useState("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -29,7 +31,15 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data: profile } = await supabase.from("profiles").select("username").eq("user_id", user.id).maybeSingle();
-      if (profile?.username) setChannelName(profile.username);
+      const list: { user_id: string; username: string }[] = [];
+      if (profile?.username) list.push({ user_id: user.id, username: profile.username });
+      const { data: col } = await supabase.from("channel_collaborators").select("channel_id").eq("collaborator_id", user.id).eq("status", "accepted");
+      if (col?.length) {
+        const { data: profs } = await supabase.from("profiles").select("user_id, username").in("user_id", col.map((c) => c.channel_id));
+        list.push(...(profs || []));
+      }
+      setChannels(list);
+      if (list[0]) { setChannelId(list[0].user_id); setChannelName(list[0].username); }
     };
     loadProfile();
   }, [open]);
@@ -67,7 +77,7 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
         video_url: videoUrlData.publicUrl,
         thumbnail_url: thumbnailUrl,
         channel_name: channelName.trim() || "Anonymous",
-        user_id: user?.id || null,
+        user_id: channelId || user?.id || null,
       });
 
       if (insertErr) throw insertErr;
@@ -109,6 +119,14 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
               {thumbnailFile ? thumbnailFile.name : "Выбрать обложку"}
             </Button>
           </div>
+          {channels.length > 1 && (
+            <div>
+              <label className="text-sm text-muted-foreground mb-1 block">Канал</label>
+              <select value={channelId} onChange={(e) => { setChannelId(e.target.value); setChannelName(channels.find((c) => c.user_id === e.target.value)?.username || ""); }} className="w-full h-10 rounded-md bg-surface border border-border text-foreground px-3 text-sm">
+                {channels.map((c, i) => <option key={c.user_id} value={c.user_id}>@{c.username}{i === 0 ? " (мой канал)" : " (соавтор)"}</option>)}
+              </select>
+            </div>
+          )}
           <Input placeholder="Название видео *" value={title} onChange={(e) => setTitle(e.target.value)} className="bg-surface border-border text-foreground" />
           <Textarea placeholder="Описание" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-surface border-border text-foreground resize-none" rows={3} />
           <Button onClick={handleUpload} disabled={uploading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">

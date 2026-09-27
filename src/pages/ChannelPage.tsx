@@ -68,6 +68,8 @@ const ChannelPage = () => {
 
   const isOwner = user?.id === userId;
   const canVerify = isAdmin || isVerifier;
+  const isCollab = !!user && collabs.some((c) => c.collaborator_id === user.id && c.status === "accepted");
+  const canManage = isOwner || isCollab;
 
   const loadCollabs = async () => {
     if (!userId) return;
@@ -128,7 +130,7 @@ const ChannelPage = () => {
 
   const saveBio = async () => {
     if (!userId) return;
-    const { error } = await supabase.from("profiles").update({ bio: bioDraft.trim() || null }).eq("user_id", userId);
+    const { error } = await supabase.rpc("update_channel_bio", { _channel: userId, _bio: bioDraft.trim() });
     if (error) return toast({ title: "Не удалось сохранить", variant: "destructive" });
     setProfile((p) => (p ? { ...p, bio: bioDraft.trim() || null } : p));
     setEditingBio(false);
@@ -216,6 +218,7 @@ const ChannelPage = () => {
               <p className="text-xs text-muted-foreground mt-1">Соавторы: {accepted.map((c) => c.profile?.username).filter(Boolean).join(", ")}</p>
             )}
             <div className="flex flex-wrap gap-2 mt-2">
+              {isCollab && <span className="text-xs px-2 py-1 rounded-full border border-border text-muted-foreground self-center">Вы соавтор — можете загружать видео и менять описание</span>}
               {userId && !isOwner && <SubscribeButton channelId={userId} showCount />}
               {isOwner && !profile.is_verified && (
                 <a href={`https://t.me/Communication_bot6373bot?start=verify_${profile.username}`} target="_blank" rel="noreferrer">
@@ -297,7 +300,7 @@ const ChannelPage = () => {
               ) : (
                 <>
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{profile.bio || "Описание канала пока не добавлено."}</p>
-                  {isOwner && <Button size="sm" variant="outline" onClick={() => setEditingBio(true)}>Изменить описание</Button>}
+                  {canManage && <Button size="sm" variant="outline" onClick={() => setEditingBio(true)}>Изменить описание</Button>}
                 </>
               )}
             </div>

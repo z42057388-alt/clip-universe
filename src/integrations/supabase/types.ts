@@ -375,6 +375,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_manage_channel: {
+        Args: { _channel_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -397,6 +401,10 @@ export type Database = {
       }
       set_verifier: {
         Args: { _target: string; _value: boolean }
+        Returns: undefined
+      }
+      update_channel_bio: {
+        Args: { _bio: string; _channel: string }
         Returns: undefined
       }
     }
