@@ -15,6 +15,13 @@
       "when": 1790401361101,
       "tag": "0001_verification_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790484210693,
+      "tag": "0002_profile_badges",
+      "breakpoints": true
     }
   ]
 }

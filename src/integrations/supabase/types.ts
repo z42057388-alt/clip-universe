@@ -218,6 +218,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          badges: string[]
           banner_url: string | null
           bio: string | null
           created_at: string
@@ -229,6 +230,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          badges?: string[]
           banner_url?: string | null
           bio?: string | null
           created_at?: string
@@ -240,6 +242,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          badges?: string[]
           banner_url?: string | null
           bio?: string | null
           created_at?: string
@@ -383,6 +386,10 @@ export type Database = {
       is_conversation_participant: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
+      }
+      set_badge: {
+        Args: { _badge: string; _target: string; _value: boolean }
+        Returns: undefined
       }
       set_verified: {
         Args: { _target: string; _value: boolean }
