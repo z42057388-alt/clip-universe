@@ -2,6 +2,7 @@ import { Menu, Search, Upload, User, MessageCircle, Bot } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UploadDialog } from "./UploadDialog";
+import { RulesDialog } from "./RulesDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationsBell } from "./NotificationsBell";
 import { AccountSwitcher } from "./AccountSwitcher";
@@ -32,8 +33,9 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
           </Link>
         </div>
 
-        <div className="flex-1 max-w-xl mx-4">
-          <div className="flex">
+        <div className="flex-1 max-w-xl mx-4 flex items-center gap-1">
+          <RulesDialog />
+          <div className="flex flex-1">
             <input
               type="text"
               placeholder="Поиск"
