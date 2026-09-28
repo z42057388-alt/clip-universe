@@ -223,6 +223,7 @@ export type Database = {
           bio: string | null
           created_at: string
           id: string
+          is_banned: boolean
           is_verified: boolean
           updated_at: string
           user_id: string
@@ -235,6 +236,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           id?: string
+          is_banned?: boolean
           is_verified?: boolean
           updated_at?: string
           user_id: string
@@ -247,6 +249,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           id?: string
+          is_banned?: boolean
           is_verified?: boolean
           updated_at?: string
           user_id?: string
@@ -387,12 +390,22 @@ export type Database = {
         Returns: boolean
       }
       increment_video_views: { Args: { video_id: string }; Returns: undefined }
+      is_banned: { Args: { _user_id: string }; Returns: boolean }
       is_conversation_participant: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
       }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
       set_badge: {
         Args: { _badge: string; _target: string; _value: boolean }
+        Returns: undefined
+      }
+      set_banned: {
+        Args: { _target: string; _value: boolean }
+        Returns: undefined
+      }
+      set_moderator: {
+        Args: { _target: string; _value: boolean }
         Returns: undefined
       }
       set_verified: {
@@ -409,7 +422,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "verifier"
+      app_role: "admin" | "verifier" | "moderator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -537,7 +550,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "verifier"],
+      app_role: ["admin", "verifier", "moderator"],
     },
   },
 } as const
