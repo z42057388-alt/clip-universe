@@ -58,6 +58,14 @@ export const CommentSection = ({ videoId }: CommentSectionProps) => {
     fetchComments();
   }, [videoId]);
 
+  const [isStaff, setIsStaff] = useState(false);
+  useEffect(() => {
+    if (!user) { setIsStaff(false); return; }
+    supabase.from("user_roles").select("role").eq("user_id", user.id).then(({ data }) => {
+      setIsStaff(!!data?.some((r) => r.role === "admin" || r.role === "moderator"));
+    });
+  }, [user]);
+
   const handleSubmit = async () => {
     if (!user) {
       toast({ title: "Войдите в аккаунт", variant: "destructive" });
@@ -135,7 +143,7 @@ export const CommentSection = ({ videoId }: CommentSectionProps) => {
                 <span className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ru })}
                 </span>
-                {user?.id === comment.user_id && (
+                {(user?.id === comment.user_id || isStaff) && (
                   <button onClick={() => handleDelete(comment.id)} className="ml-auto p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

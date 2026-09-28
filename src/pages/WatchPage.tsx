@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ThumbsUp, ThumbsDown, Share2, ArrowLeft, MessageCircle } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Share2, ArrowLeft, MessageCircle, Trash2 } from "lucide-react";
 import { CommentSection } from "@/components/CommentSection";
 import { SubscribeButton } from "@/components/SubscribeButton";
 import { formatDistanceToNow } from "date-fns";
@@ -37,6 +37,24 @@ const WatchPage = () => {
   const [reactionLoading, setReactionLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [isStaff, setIsStaff] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setIsStaff(false); return; }
+    supabase.from("user_roles").select("role").eq("user_id", user.id).then(({ data }) => {
+      setIsStaff(!!data?.some((r) => r.role === "admin" || r.role === "moderator"));
+    });
+  }, [user]);
+
+  const handleModDelete = async () => {
+    if (!id || !confirm("Удалить это видео?")) return;
+    const { error, count } = await supabase.from("videos").delete({ count: "exact" }).eq("id", id);
+    if (error || !count) return toast({ title: "Не удалось удалить видео", variant: "destructive" });
+    toast({ title: "Видео удалено" });
+    navigate("/");
+  };
+
 
   useEffect(() => {
     if (!id) return;
@@ -192,6 +210,11 @@ const WatchPage = () => {
             <button onClick={handleChatRequest} className="flex items-center gap-2 px-4 py-2 bg-primary rounded-full hover:bg-primary/90 transition-colors text-primary-foreground text-sm">
               <MessageCircle className="w-4 h-4" /> Написать
             </button>
+            {isStaff && (
+              <button onClick={handleModDelete} className="flex items-center gap-2 px-4 py-2 bg-destructive rounded-full hover:bg-destructive/90 transition-colors text-destructive-foreground text-sm">
+                <Trash2 className="w-4 h-4" /> Удалить (модерация)
+              </button>
+            )}
           </div>
         </div>
         {video.description && (
