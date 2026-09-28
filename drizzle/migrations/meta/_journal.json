@@ -36,6 +36,13 @@
       "when": 1790572581349,
       "tag": "0004_moderation_system",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790572597186,
+      "tag": "0005_protect_is_banned",
+      "breakpoints": true
     }
   ]
 }
