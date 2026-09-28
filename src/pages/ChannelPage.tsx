@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { VideoCard } from "@/components/VideoCard";
-import { ArrowLeft, Settings, Search, UserPlus, X, Share2, BadgeCheck, ShieldCheck, Send } from "lucide-react";
+import { ArrowLeft, Settings, Search, UserPlus, X, Share2, BadgeCheck, ShieldCheck, Send, Gavel, Ban } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SubscribeButton } from "@/components/SubscribeButton";
 import { Input } from "@/components/ui/input";
@@ -63,11 +63,16 @@ const ChannelPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isVerifier, setIsVerifier] = useState(false);
   const [targetIsVerifier, setTargetIsVerifier] = useState(false);
+  const [isModerator, setIsModerator] = useState(false);
+  const [targetIsModerator, setTargetIsModerator] = useState(false);
+  const [targetIsAdmin, setTargetIsAdmin] = useState(false);
+  const [targetBanned, setTargetBanned] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
   const isOwner = user?.id === userId;
   const canVerify = isAdmin || isVerifier;
+  const isStaff = isAdmin || isModerator;
   const isCollab = !!user && collabs.some((c) => c.collaborator_id === user.id && c.status === "accepted");
   const canManage = isOwner || isCollab;
 
@@ -88,7 +93,10 @@ const ChannelPage = () => {
       const r = data || [];
       setIsAdmin(!!user && r.some((x) => x.user_id === user.id && x.role === "admin"));
       setIsVerifier(!!user && r.some((x) => x.user_id === user.id && x.role === "verifier"));
+      setIsModerator(!!user && r.some((x) => x.user_id === user.id && x.role === "moderator"));
       setTargetIsVerifier(r.some((x) => x.user_id === userId && x.role === "verifier"));
+      setTargetIsModerator(r.some((x) => x.user_id === userId && x.role === "moderator"));
+      setTargetIsAdmin(r.some((x) => x.user_id === userId && x.role === "admin"));
     });
   }, [userId, user]);
 
@@ -96,11 +104,11 @@ const ChannelPage = () => {
     if (!userId) return;
     const load = async () => {
       const [profileRes, videosRes, subsRes] = await Promise.all([
-        supabase.from("profiles").select("user_id, username, avatar_url, created_at, bio, is_verified, badges").eq("user_id", userId).maybeSingle(),
+        supabase.from("profiles").select("user_id, username, avatar_url, created_at, bio, is_verified, badges, is_banned").eq("user_id", userId).maybeSingle(),
         supabase.from("videos").select("id, title, thumbnail_url, channel_name, views, likes, created_at").eq("user_id", userId),
         supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("channel_id", userId),
       ]);
-      if (profileRes.data) { setProfile(profileRes.data as Profile); setBioDraft(profileRes.data.bio || ""); }
+      if (profileRes.data) { setProfile(profileRes.data as Profile); setBioDraft(profileRes.data.bio || ""); setTargetBanned(!!profileRes.data.is_banned); }
       if (videosRes.data) setVideos(videosRes.data as Video[]);
       setSubCount(subsRes.count || 0);
       await loadCollabs();
@@ -153,6 +161,25 @@ const ChannelPage = () => {
     if (error) return toast({ title: "Только главный администратор может это делать", variant: "destructive" });
     setTargetIsVerifier(next);
     toast({ title: next ? "Право выдачи галочек выдано" : "Право выдачи галочек забрано" });
+  };
+
+  const toggleModerator = async () => {
+    if (!userId) return;
+    const next = !targetIsModerator;
+    const { error } = await supabase.rpc("set_moderator", { _target: userId, _value: next });
+    if (error) return toast({ title: "Только главный администратор может это делать", variant: "destructive" });
+    setTargetIsModerator(next);
+    toast({ title: next ? "Пользователь стал модератором" : "Модератор снят" });
+  };
+
+  const toggleBan = async () => {
+    if (!userId) return;
+    const next = !targetBanned;
+    if (next && !confirm("Заблокировать этого пользователя?")) return;
+    const { error } = await supabase.rpc("set_banned", { _target: userId, _value: next });
+    if (error) return toast({ title: "Не удалось", description: "Недостаточно прав", variant: "destructive" });
+    setTargetBanned(next);
+    toast({ title: next ? "Пользователь заблокирован" : "Пользователь разблокирован" });
   };
 
   const share = async () => {
@@ -245,6 +272,16 @@ const ChannelPage = () => {
               {isAdmin && !isOwner && (
                 <Button size="sm" variant="outline" onClick={toggleVerifier}>
                   <ShieldCheck className="w-4 h-4 mr-1" /> {targetIsVerifier ? "Забрать право выдачи галочек" : "Дать право выдачи галочек"}
+                </Button>
+              )}
+              {isAdmin && !isOwner && (
+                <Button size="sm" variant="outline" onClick={toggleModerator}>
+                  <Gavel className="w-4 h-4 mr-1" /> {targetIsModerator ? "Снять модератора" : "Сделать модератором"}
+                </Button>
+              )}
+              {isStaff && !isOwner && !targetIsAdmin && (
+                <Button size="sm" variant={targetBanned ? "outline" : "destructive"} onClick={toggleBan}>
+                  <Ban className="w-4 h-4 mr-1" /> {targetBanned ? "Разблокировать" : "Заблокировать"}
                 </Button>
               )}
             </div>
