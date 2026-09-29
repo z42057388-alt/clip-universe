@@ -50,6 +50,13 @@
       "when": 1790656128984,
       "tag": "0006_video_pins",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790656727288,
+      "tag": "0007_channel_posts",
+      "breakpoints": true
     }
   ]
 }

@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { VideoCard } from "@/components/VideoCard";
 import { Pin, PinOff } from "lucide-react";
+import { ChannelPosts } from "@/components/ChannelPosts";
 import { ArrowLeft, Settings, Search, UserPlus, X, Share2, BadgeCheck, ShieldCheck, Send, Gavel, Ban } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SubscribeButton } from "@/components/SubscribeButton";
@@ -46,7 +47,7 @@ interface Collab {
   profile?: { username: string; avatar_url: string | null };
 }
 
-type Tab = "videos" | "about" | "collabs";
+type Tab = "videos" | "posts" | "about" | "collabs";
 type Sort = "new" | "popular" | "old";
 
 const ChannelPage = () => {
@@ -310,6 +311,7 @@ const ChannelPage = () => {
 
         <div className="border-b border-border mb-6 flex">
           {tabBtn("videos", "Видео")}
+          {tabBtn("posts", "Посты")}
           {tabBtn("about", "О канале")}
           {tabBtn("collabs", `Соавторы${accepted.length ? ` (${accepted.length})` : ""}`)}
         </div>
@@ -346,6 +348,9 @@ const ChannelPage = () => {
           </>
         )}
 
+        {tab === "posts" && userId && (
+          <ChannelPosts channelId={userId} channelName={profile.username} avatarUrl={profile.avatar_url} canManage={canManage} isStaff={isStaff} />
+        )}
         {tab === "about" && (
           <div className="grid md:grid-cols-3 gap-6 pb-8">
             <div className="md:col-span-2 space-y-3">
