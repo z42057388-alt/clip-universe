@@ -12,6 +12,7 @@ import ChannelPage from "./pages/ChannelPage";
 import ProfileEditPage from "./pages/ProfileEditPage";
 import { AuthPage } from "./pages/AuthPage";
 import AIChatPage from "./pages/AIChatPage";
+import RulesPage from "./pages/RulesPage";
 import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/ai-chat" element={<AIChatPage />} />
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+            <Route path="/rules" element={<RulesPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

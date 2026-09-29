@@ -11,28 +11,7 @@ const rules = [
   "Нарушение правил ведёт к блокировке канала и удалению видео.",
 ];
 
-export const RulesDialog = () => {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <button
-        onClick={() => setOpen(true)}
-        className="p-2 rounded-full hover:bg-surface-hover transition-colors shrink-0"
-        title="Правила платформы"
-      >
-        <ScrollText className="w-5 h-5 text-foreground" />
-      </button>
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-foreground">
-              <ScrollText className="w-5 h-5" />
-              Правила VidTube
-            </DialogTitle>
-          </DialogHeader>
-
+export const RulesContent = () => (
           <div className="space-y-4 text-sm">
             <div>
               <h3 className="font-semibold text-foreground mb-2">Что означают галочки</h3>
@@ -61,6 +40,31 @@ export const RulesDialog = () => {
               </ul>
             </div>
           </div>
+);
+
+export const RulesDialog = () => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="p-2 rounded-full hover:bg-surface-hover transition-colors shrink-0"
+        title="Правила платформы"
+      >
+        <ScrollText className="w-5 h-5 text-foreground" />
+      </button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-foreground">
+              <ScrollText className="w-5 h-5" />
+              Правила VidTube
+            </DialogTitle>
+          </DialogHeader>
+
+          <RulesContent />
         </DialogContent>
       </Dialog>
     </>
