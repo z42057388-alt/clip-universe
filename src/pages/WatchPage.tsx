@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ThumbsUp, ThumbsDown, Share2, ArrowLeft, MessageCircle, Trash2 } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Share2, ArrowLeft, MessageCircle, Trash2, Pencil } from "lucide-react";
 import { CommentSection } from "@/components/CommentSection";
 import { SubscribeButton } from "@/components/SubscribeButton";
 import { formatDistanceToNow } from "date-fns";
@@ -46,6 +46,33 @@ const WatchPage = () => {
       setIsStaff(!!data?.some((r) => r.role === "admin" || r.role === "moderator"));
     });
   }, [user]);
+
+  const [canEdit, setCanEdit] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
+  const [descDraft, setDescDraft] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!user || !video?.user_id) { setCanEdit(false); return; }
+    if (user.id === video.user_id) { setCanEdit(true); return; }
+    supabase.rpc("can_manage_channel", { _user_id: user.id, _channel_id: video.user_id }).then(({ data }) => setCanEdit(!!data));
+  }, [user, video?.user_id]);
+
+  const startEdit = () => { if (!video) return; setTitleDraft(video.title); setDescDraft(video.description || ""); setEditing(true); };
+  const saveEdit = async () => {
+    if (!video) return;
+    const title = titleDraft.trim();
+    if (!title || title.length > 200) return toast({ title: "Название: от 1 до 200 символов", variant: "destructive" });
+    if (descDraft.length > 5000) return toast({ title: "Описание: максимум 5000 символов", variant: "destructive" });
+    setSaving(true);
+    const { error, count } = await supabase.from("videos").update({ title, description: descDraft.trim() || null }, { count: "exact" }).eq("id", video.id);
+    setSaving(false);
+    if (error || !count) return toast({ title: "Не удалось сохранить", variant: "destructive" });
+    setVideo({ ...video, title, description: descDraft.trim() || null });
+    setEditing(false);
+    toast({ title: "Изменения сохранены" });
+  };
 
   const handleModDelete = async () => {
     if (!id || !confirm("Удалить это видео?")) return;
@@ -166,7 +193,25 @@ const WatchPage = () => {
         <div className="aspect-video bg-surface rounded-2xl overflow-hidden mb-4">
           <video src={video.video_url} controls autoPlay className="w-full h-full" />
         </div>
-        <h1 className="text-xl font-bold text-foreground mb-2">{video.title}</h1>
+        {editing ? (
+          <div className="bg-surface rounded-xl p-4 mb-4 space-y-3">
+            <input value={titleDraft} onChange={(e) => setTitleDraft(e.target.value)} maxLength={200} placeholder="Название" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground" />
+            <textarea value={descDraft} onChange={(e) => setDescDraft(e.target.value)} maxLength={5000} rows={5} placeholder="Описание" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground text-sm" />
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setEditing(false)} className="px-4 py-2 rounded-full bg-surface-hover text-foreground text-sm">Отмена</button>
+              <button onClick={saveEdit} disabled={saving} className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm disabled:opacity-50">{saving ? "Сохранение..." : "Сохранить"}</button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <h1 className="text-xl font-bold text-foreground">{video.title}</h1>
+            {canEdit && (
+              <button onClick={startEdit} className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-hover hover:bg-accent text-foreground text-sm shrink-0">
+                <Pencil className="w-4 h-4" /> Изменить
+              </button>
+            )}
+          </div>
+        )}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
             {video.user_id ? (
@@ -217,7 +262,7 @@ const WatchPage = () => {
             )}
           </div>
         </div>
-        {video.description && (
+        {!editing && video.description && (
           <div className="bg-surface rounded-xl p-4">
             <p className="text-sm text-foreground whitespace-pre-wrap">{video.description}</p>
           </div>
