@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, ChevronDown, LogOut, UserPlus, User } from "lucide-react";
+import { Check, ChevronDown, LogOut, UserPlus, User, ScrollText } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getSavedAccounts, switchAccount, SavedAccount } from "@/lib/accounts";
 import { toast } from "@/hooks/use-toast";
@@ -116,6 +116,9 @@ export const AccountSwitcher = () => {
           <div className="border-t border-border py-1">
             <button onClick={() => { setOpen(false); navigate(`/channel/${user.id}`); }} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-surface-hover transition-colors text-foreground text-sm">
               <User className="w-4 h-4 text-muted-foreground" /> Мой канал
+            </button>
+            <button onClick={() => { setOpen(false); navigate("/rules"); }} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-surface-hover transition-colors text-foreground text-sm">
+              <ScrollText className="w-4 h-4 text-muted-foreground" /> Правила
             </button>
             <button onClick={addAccount} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-surface-hover transition-colors text-foreground text-sm">
               <UserPlus className="w-4 h-4 text-muted-foreground" /> Добавить аккаунт

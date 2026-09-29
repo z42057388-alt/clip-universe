@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { VideoCard } from "@/components/VideoCard";
+import { Pin, PinOff } from "lucide-react";
 import { ArrowLeft, Settings, Search, UserPlus, X, Share2, BadgeCheck, ShieldCheck, Send, Gavel, Ban } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SubscribeButton } from "@/components/SubscribeButton";
@@ -35,6 +36,7 @@ interface Video {
   views: number;
   likes: number;
   created_at: string;
+  pinned_at?: string | null;
 }
 
 interface Collab {
@@ -105,7 +107,7 @@ const ChannelPage = () => {
     const load = async () => {
       const [profileRes, videosRes, subsRes] = await Promise.all([
         supabase.from("profiles").select("user_id, username, avatar_url, created_at, bio, is_verified, badges, is_banned").eq("user_id", userId).maybeSingle(),
-        supabase.from("videos").select("id, title, thumbnail_url, channel_name, views, likes, created_at").eq("user_id", userId),
+        supabase.from("videos").select("id, title, thumbnail_url, channel_name, views, likes, created_at, pinned_at").eq("user_id", userId),
         supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("channel_id", userId),
       ]);
       if (profileRes.data) { setProfile(profileRes.data as Profile); setBioDraft(profileRes.data.bio || ""); setTargetBanned(!!profileRes.data.is_banned); }
@@ -193,6 +195,24 @@ const ChannelPage = () => {
   const badges = profile.badges || [];
   const totalViews = videos.reduce((s, v) => s + (v.views || 0), 0);
   const totalLikes = videos.reduce((s, v) => s + (v.likes || 0), 0);
+  const pinned = videos.filter((v) => v.pinned_at).sort((a, b) => +new Date(a.pinned_at!) - +new Date(b.pinned_at!));
+  const togglePin = async (v: Video) => {
+    if (!v.pinned_at && pinned.length >= 7) return toast({ title: "Можно закрепить максимум 7 видео", variant: "destructive" });
+    const val = v.pinned_at ? null : new Date().toISOString();
+    const { error, count } = await supabase.from("videos").update({ pinned_at: val }, { count: "exact" }).eq("id", v.id);
+    if (error || !count) return toast({ title: "Не удалось изменить закрепление", variant: "destructive" });
+    setVideos((vs) => vs.map((x) => (x.id === v.id ? { ...x, pinned_at: val } : x)));
+  };
+  const renderCard = (video: Video) => (
+    <div key={video.id} className="relative group">
+      <VideoCard {...video} createdAt={video.created_at} thumbnailUrl={video.thumbnail_url} channelName={video.channel_name} />
+      {canManage && (
+        <button onClick={() => togglePin(video)} className="absolute top-2 right-2 px-2 py-1 rounded-md bg-background/80 text-foreground text-xs flex items-center gap-1 hover:bg-background" title={video.pinned_at ? "Открепить" : "Закрепить"}>
+          {video.pinned_at ? <><PinOff className="w-3 h-3" /> Открепить</> : <><Pin className="w-3 h-3" /> Закрепить</>}
+        </button>
+      )}
+    </div>
+  );
   const shown = videos
     .filter((v) => v.title.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) =>
@@ -307,6 +327,12 @@ const ChannelPage = () => {
                 <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Поиск на канале" className="pl-9 w-56 bg-surface border-border" />
               </div>
             </div>
+            {pinned.length > 0 && !search && (
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><Pin className="w-4 h-4" /> Закреплённые ({pinned.length}/7)</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">{pinned.map(renderCard)}</div>
+              </div>
+            )}
             {shown.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <span className="text-5xl mb-4">🎬</span>
@@ -314,9 +340,7 @@ const ChannelPage = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-8">
-                {shown.map((video) => (
-                  <VideoCard key={video.id} {...video} createdAt={video.created_at} thumbnailUrl={video.thumbnail_url} channelName={video.channel_name} />
-                ))}
+                {shown.map(renderCard)}
               </div>
             )}
           </>
