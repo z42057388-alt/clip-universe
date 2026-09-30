@@ -70,6 +70,30 @@ export type Database = {
           },
         ]
       }
+      avatar_frames: {
+        Row: {
+          css_class: string
+          id: string
+          name: string
+          price: number
+          sort: number
+        }
+        Insert: {
+          css_class: string
+          id: string
+          name: string
+          price: number
+          sort?: number
+        }
+        Update: {
+          css_class?: string
+          id?: string
+          name?: string
+          price?: number
+          sort?: number
+        }
+        Relationships: []
+      }
       channel_collaborators: {
         Row: {
           channel_id: string
@@ -241,11 +265,13 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_frame: string | null
           avatar_url: string | null
           badges: string[]
           banner_url: string | null
           bio: string | null
           created_at: string
+          currency: number
           id: string
           is_banned: boolean
           is_verified: boolean
@@ -254,11 +280,13 @@ export type Database = {
           username: string
         }
         Insert: {
+          active_frame?: string | null
           avatar_url?: string | null
           badges?: string[]
           banner_url?: string | null
           bio?: string | null
           created_at?: string
+          currency?: number
           id?: string
           is_banned?: boolean
           is_verified?: boolean
@@ -267,11 +295,13 @@ export type Database = {
           username: string
         }
         Update: {
+          active_frame?: string | null
           avatar_url?: string | null
           badges?: string[]
           banner_url?: string | null
           bio?: string | null
           created_at?: string
+          currency?: number
           id?: string
           is_banned?: boolean
           is_verified?: boolean
@@ -301,6 +331,35 @@ export type Database = {
           subscriber_id?: string
         }
         Relationships: []
+      }
+      user_frames: {
+        Row: {
+          created_at: string
+          frame_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          frame_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          frame_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_frames_frame_id_fkey"
+            columns: ["frame_id"]
+            isOneToOne: false
+            referencedRelation: "avatar_frames"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -358,6 +417,8 @@ export type Database = {
           created_at: string
           description: string | null
           dislikes: number
+          duration_seconds: number | null
+          home_pinned_at: string | null
           id: string
           likes: number
           pinned_at: string | null
@@ -373,6 +434,8 @@ export type Database = {
           created_at?: string
           description?: string | null
           dislikes?: number
+          duration_seconds?: number | null
+          home_pinned_at?: string | null
           id?: string
           likes?: number
           pinned_at?: string | null
@@ -388,6 +451,8 @@ export type Database = {
           created_at?: string
           description?: string | null
           dislikes?: number
+          duration_seconds?: number | null
+          home_pinned_at?: string | null
           id?: string
           likes?: number
           pinned_at?: string | null
@@ -405,9 +470,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      buy_frame: { Args: { _frame: string }; Returns: undefined }
       can_manage_channel: {
         Args: { _channel_id: string; _user_id: string }
         Returns: boolean
+      }
+      equip_frame: { Args: { _frame: string }; Returns: undefined }
+      give_currency: {
+        Args: { _amount: number; _target: string }
+        Returns: undefined
       }
       has_role: {
         Args: {
@@ -423,6 +494,7 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      reward_video_upload: { Args: { _video_id: string }; Returns: undefined }
       set_badge: {
         Args: { _badge: string; _target: string; _value: boolean }
         Returns: undefined
