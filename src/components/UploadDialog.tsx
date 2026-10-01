@@ -44,6 +44,16 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
     loadProfile();
   }, [open]);
 
+  const getDuration = (file: File): Promise<number> =>
+    new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const v = document.createElement("video");
+      v.preload = "metadata";
+      v.onloadedmetadata = () => { const d = Math.round(v.duration || 0); URL.revokeObjectURL(url); resolve(d); };
+      v.onerror = () => { URL.revokeObjectURL(url); resolve(0); };
+      v.src = url;
+    });
+
   const handleUpload = async () => {
     if (!videoFile || !title.trim()) {
       toast({ title: "Ошибка", description: "Укажите название и выберите видео", variant: "destructive" });
@@ -70,19 +80,27 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
       }
 
       const { data: { user } } = await supabase.auth.getUser();
+      const durationSeconds = await getDuration(videoFile);
 
-      const { error: insertErr } = await supabase.from("videos").insert({
+      const { data: inserted, error: insertErr } = await supabase.from("videos").insert({
         title: title.trim(),
         description: description.trim() || null,
         video_url: videoUrlData.publicUrl,
         thumbnail_url: thumbnailUrl,
         channel_name: channelName.trim() || "Anonymous",
         user_id: channelId || user?.id || null,
-      });
+        duration_seconds: durationSeconds,
+      }).select("id").single();
 
       if (insertErr) throw insertErr;
 
-      toast({ title: "Успех!", description: "Видео загружено" });
+      let rewardMsg = "";
+      if (durationSeconds >= 120 && inserted && (channelId || user?.id) === user?.id) {
+        const { error: rewardErr } = await supabase.rpc("reward_video_upload", { _video_id: inserted.id });
+        rewardMsg = rewardErr ? "" : " +20 ViewTubdolar за видео от 2 минут!";
+      }
+
+      toast({ title: "Успех!", description: "Видео загружено." + rewardMsg });
       setTitle("");
       setDescription("");
       setChannelName("");

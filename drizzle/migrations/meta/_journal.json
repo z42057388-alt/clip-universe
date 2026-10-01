@@ -64,6 +64,13 @@
       "when": 1790742910296,
       "tag": "0008_viewtubdolar_economy",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790828258675,
+      "tag": "0009_fix_currency_trigger",
+      "breakpoints": true
     }
   ]
 }

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { VideoCard } from "@/components/VideoCard";
 import { Pin, PinOff } from "lucide-react";
 import { ChannelPosts } from "@/components/ChannelPosts";
-import { ArrowLeft, Settings, Search, UserPlus, X, Share2, BadgeCheck, ShieldCheck, Send, Gavel, Ban } from "lucide-react";
+import { ArrowLeft, Settings, Search, UserPlus, X, Share2, BadgeCheck, ShieldCheck, Send, Gavel, Ban, Coins } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SubscribeButton } from "@/components/SubscribeButton";
 import { Input } from "@/components/ui/input";
@@ -70,6 +70,15 @@ const ChannelPage = () => {
   const [targetIsModerator, setTargetIsModerator] = useState(false);
   const [targetIsAdmin, setTargetIsAdmin] = useState(false);
   const [targetBanned, setTargetBanned] = useState(false);
+  const [giftAmount, setGiftAmount] = useState("");
+  const giveCurrency = async () => {
+    const amount = parseInt(giftAmount, 10);
+    if (!userId || !amount) return toast({ title: "Введите сумму", variant: "destructive" });
+    const { error } = await supabase.rpc("give_currency", { _target: userId, _amount: amount });
+    if (error) return toast({ title: "Не удалось выдать валюту", description: error.message, variant: "destructive" });
+    toast({ title: `Выдано ${amount} ViewTubdolar` });
+    setGiftAmount("");
+  };
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -299,6 +308,12 @@ const ChannelPage = () => {
                 <Button size="sm" variant="outline" onClick={toggleModerator}>
                   <Gavel className="w-4 h-4 mr-1" /> {targetIsModerator ? "Снять модератора" : "Сделать модератором"}
                 </Button>
+              )}
+              {isStaff && !isOwner && (
+                <div className="flex items-center gap-2">
+                  <Input value={giftAmount} onChange={(e) => setGiftAmount(e.target.value.replace(/\D/g, ""))} placeholder="Сумма" className="w-24 h-9 bg-surface border-border" />
+                  <Button size="sm" variant="outline" onClick={giveCurrency}><Coins className="w-4 h-4 mr-1" /> Выдать VTD</Button>
+                </div>
               )}
               {isStaff && !isOwner && !targetIsAdmin && (
                 <Button size="sm" variant={targetBanned ? "outline" : "destructive"} onClick={toggleBan}>
