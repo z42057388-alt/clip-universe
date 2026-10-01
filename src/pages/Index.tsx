@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { VideoCard } from "@/components/VideoCard";
 import { supabase } from "@/integrations/supabase/client";
+import { Pin } from "lucide-react";
 
 interface Video {
   id: string;
@@ -19,6 +20,7 @@ const categories = ["Все", "Музыка", "Игры", "Новости", "С�
 const Index = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [videos, setVideos] = useState<Video[]>([]);
+  const [pinned, setPinned] = useState<Video[]>([]);
   const [activeCategory, setActiveCategory] = useState("Все");
   const [loading, setLoading] = useState(true);
 
@@ -29,6 +31,13 @@ const Index = () => {
         .select("id, title, thumbnail_url, channel_name, views, created_at, user_id")
         .order("created_at", { ascending: false });
       if (data) setVideos(data);
+      const { data: pinData } = await supabase
+        .from("videos")
+        .select("id, title, thumbnail_url, channel_name, views, created_at, user_id")
+        .not("home_pinned_at", "is", null)
+        .order("home_pinned_at", { ascending: false })
+        .limit(10);
+      if (pinData) setPinned(pinData);
       setLoading(false);
     };
     fetchVideos();
@@ -58,6 +67,18 @@ const Index = () => {
             ))}
           </div>
         </div>
+
+        {/* Home-pinned */}
+        {pinned.length > 0 && (
+          <div className="p-4 pb-0">
+            <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2"><Pin className="w-5 h-5" /> Закреплённые</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {pinned.map((video) => (
+                <VideoCard key={video.id} {...video} createdAt={video.created_at} thumbnailUrl={video.thumbnail_url} channelName={video.channel_name} userId={video.user_id} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Video Grid */}
         <div className="p-4">

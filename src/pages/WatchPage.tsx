@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ThumbsUp, ThumbsDown, Share2, ArrowLeft, MessageCircle, Trash2, Pencil } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Share2, ArrowLeft, MessageCircle, Trash2, Pencil, Pin, PinOff } from "lucide-react";
 import { CommentSection } from "@/components/CommentSection";
 import { SubscribeButton } from "@/components/SubscribeButton";
 import { formatDistanceToNow } from "date-fns";
@@ -74,6 +74,16 @@ const WatchPage = () => {
     toast({ title: "Изменения сохранены" });
   };
 
+  const [homePinned, setHomePinned] = useState(false);
+  const toggleHomePin = async () => {
+    if (!video) return;
+    const val = homePinned ? null : new Date().toISOString();
+    const { error, count } = await supabase.from("videos").update({ home_pinned_at: val }, { count: "exact" }).eq("id", video.id);
+    if (error || !count) return toast({ title: "Не удалось изменить закрепление", description: error?.message, variant: "destructive" });
+    setHomePinned(!homePinned);
+    toast({ title: homePinned ? "Видео откреплено от главной" : "Видео закреплено на главной" });
+  };
+
   const handleModDelete = async () => {
     if (!id || !confirm("Удалить это видео?")) return;
     const { error, count } = await supabase.from("videos").delete({ count: "exact" }).eq("id", id);
@@ -89,6 +99,7 @@ const WatchPage = () => {
       const { data, error } = await supabase.from("videos").select("*").eq("id", id).single();
       if (!error && data) {
         setVideo(data as Video);
+        setHomePinned(!!(data as any).home_pinned_at);
         await supabase.rpc("increment_video_views", { video_id: id });
       }
       setLoading(false);
@@ -255,6 +266,11 @@ const WatchPage = () => {
             <button onClick={handleChatRequest} className="flex items-center gap-2 px-4 py-2 bg-primary rounded-full hover:bg-primary/90 transition-colors text-primary-foreground text-sm">
               <MessageCircle className="w-4 h-4" /> Написать
             </button>
+            {isStaff && (
+              <button onClick={toggleHomePin} className="flex items-center gap-2 px-4 py-2 bg-surface-hover rounded-full hover:bg-accent transition-colors text-foreground text-sm">
+                {homePinned ? <><PinOff className="w-4 h-4" /> Открепить с главной</> : <><Pin className="w-4 h-4" /> На главную</>}
+              </button>
+            )}
             {isStaff && (
               <button onClick={handleModDelete} className="flex items-center gap-2 px-4 py-2 bg-destructive rounded-full hover:bg-destructive/90 transition-colors text-destructive-foreground text-sm">
                 <Trash2 className="w-4 h-4" /> Удалить (модерация)
