@@ -13,6 +13,8 @@ import ProfileEditPage from "./pages/ProfileEditPage";
 import { AuthPage } from "./pages/AuthPage";
 import AIChatPage from "./pages/AIChatPage";
 import RulesPage from "./pages/RulesPage";
+import ShopPage from "./pages/ShopPage";
+import BackpackPage from "./pages/BackpackPage";
 import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,8 @@ const App = () => (
             <Route path="/ai-chat" element={<AIChatPage />} />
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
             <Route path="/rules" element={<RulesPage />} />
+            <Route path="/shop" element={<ShopPage />} />
+            <Route path="/backpack" element={<BackpackPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

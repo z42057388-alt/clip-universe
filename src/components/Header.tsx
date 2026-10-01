@@ -1,11 +1,12 @@
-import { Menu, Search, Upload, User, MessageCircle, Bot } from "lucide-react";
-import { useState } from "react";
+import { Menu, Search, Upload, User, MessageCircle, Bot, Coins, ShoppingBag } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UploadDialog } from "./UploadDialog";
 import { RulesDialog } from "./RulesDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationsBell } from "./NotificationsBell";
 import { AccountSwitcher } from "./AccountSwitcher";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -14,7 +15,14 @@ interface HeaderProps {
 export const Header = ({ onToggleSidebar }: HeaderProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [currency, setCurrency] = useState<number | null>(null);
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) { setCurrency(null); return; }
+    supabase.from("profiles").select("currency").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => setCurrency(data?.currency ?? 0));
+  }, [user]);
   const navigate = useNavigate();
 
   return (
@@ -61,6 +69,10 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
           </Link>
           {user ? (
             <>
+              <Link to="/shop" className="flex items-center gap-1 px-2 py-1 rounded-full hover:bg-surface-hover transition-colors" title="Магазин рамок">
+                <Coins className="w-4 h-4 text-yellow-400" />
+                <span className="text-sm font-semibold text-foreground">{currency ?? 0}</span>
+              </Link>
               <NotificationsBell />
               <AccountSwitcher />
             </>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, ChevronDown, LogOut, UserPlus, User, ScrollText } from "lucide-react";
+import { Check, ChevronDown, LogOut, UserPlus, User, ScrollText, ShoppingBag, Backpack } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getSavedAccounts, switchAccount, SavedAccount } from "@/lib/accounts";
 import { toast } from "@/hooks/use-toast";
@@ -119,6 +119,12 @@ export const AccountSwitcher = () => {
             </button>
             <button onClick={() => { setOpen(false); navigate("/rules"); }} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-surface-hover transition-colors text-foreground text-sm">
               <ScrollText className="w-4 h-4 text-muted-foreground" /> Правила
+            </button>
+            <button onClick={() => { setOpen(false); navigate("/shop"); }} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-surface-hover transition-colors text-foreground text-sm">
+              <ShoppingBag className="w-4 h-4 text-muted-foreground" /> Магазин
+            </button>
+            <button onClick={() => { setOpen(false); navigate("/backpack"); }} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-surface-hover transition-colors text-foreground text-sm">
+              <Backpack className="w-4 h-4 text-muted-foreground" /> Рюкзак
             </button>
             <button onClick={addAccount} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-surface-hover transition-colors text-foreground text-sm">
               <UserPlus className="w-4 h-4 text-muted-foreground" /> Добавить аккаунт
