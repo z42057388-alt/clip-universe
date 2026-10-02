@@ -226,9 +226,11 @@ const WatchPage = () => {
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
             {video.user_id ? (
-              <Link to={`/channel/${video.user_id}`} className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:opacity-80 transition-opacity">
-                <span className="text-primary-foreground font-bold">{video.channel_name.charAt(0).toUpperCase()}</span>
-              </Link>
+              <AvatarFrame frame={channelFrame}>
+                <Link to={`/channel/${video.user_id}`} className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:opacity-80 transition-opacity">
+                  <span className="text-primary-foreground font-bold">{video.channel_name.charAt(0).toUpperCase()}</span>
+                </Link>
+              </AvatarFrame>
             ) : (
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground font-bold">{video.channel_name.charAt(0).toUpperCase()}</span>
