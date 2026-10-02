@@ -245,13 +245,15 @@ const ChannelPage = () => {
         </Link>
 
         <div className="flex items-center gap-4 sm:gap-6 py-6 -mt-12 sm:-mt-16 relative z-10">
-          <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-primary flex items-center justify-center border-4 border-background overflow-hidden flex-shrink-0">
-            {profile.avatar_url ? (
-              <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-primary-foreground text-2xl sm:text-4xl font-bold">{profile.username.charAt(0).toUpperCase()}</span>
-            )}
-          </div>
+          <AvatarFrame frame={profile.active_frame}>
+            <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-primary flex items-center justify-center border-4 border-background overflow-hidden flex-shrink-0">
+              {profile.avatar_url ? (
+                <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-primary-foreground text-2xl sm:text-4xl font-bold">{profile.username.charAt(0).toUpperCase()}</span>
+              )}
+            </div>
+          </AvatarFrame>
           <div className="flex-1 min-w-0 pt-8 sm:pt-12">
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">{profile.username}</h1>
@@ -413,9 +415,11 @@ const ChannelPage = () => {
             ) : (
               visibleCollabs.map((c) => (
                 <div key={c.id} className="flex items-center gap-3 p-3 rounded-xl bg-surface">
-                  <Link to={`/channel/${c.collaborator_id}`} className="w-10 h-10 rounded-full bg-primary flex items-center justify-center overflow-hidden">
-                    {c.profile?.avatar_url ? <img src={c.profile.avatar_url} alt="" className="w-full h-full object-cover" /> : <span className="text-primary-foreground font-bold">{c.profile?.username?.charAt(0).toUpperCase()}</span>}
-                  </Link>
+                  <AvatarFrame frame={c.profile?.active_frame}>
+                    <Link to={`/channel/${c.collaborator_id}`} className="w-10 h-10 rounded-full bg-primary flex items-center justify-center overflow-hidden">
+                      {c.profile?.avatar_url ? <img src={c.profile.avatar_url} alt="" className="w-full h-full object-cover" /> : <span className="text-primary-foreground font-bold">{c.profile?.username?.charAt(0).toUpperCase()}</span>}
+                    </Link>
+                  </AvatarFrame>
                   <Link to={`/channel/${c.collaborator_id}`} className="flex-1 text-foreground hover:underline">@{c.profile?.username || "Пользователь"}</Link>
                   {c.status === "pending" && <span className="text-xs text-muted-foreground">Ожидает ответа</span>}
                   {(isOwner || user?.id === c.collaborator_id) && (
