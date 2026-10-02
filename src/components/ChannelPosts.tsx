@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
+import { AvatarFrame } from "@/components/AvatarFrame";
+import { useActiveFrames } from "@/hooks/useActiveFrames";
 
 interface Post { id: string; content: string; created_at: string; author_id: string }
 
@@ -19,6 +21,7 @@ interface Props {
 }
 
 export const ChannelPosts = ({ channelId, channelName, avatarUrl, canManage, isStaff }: Props) => {
+  const frames = useActiveFrames([channelId]);
   const { user } = useAuth();
   const { toast } = useToast();
   const [posts, setPosts] = useState<Post[]>([]);
@@ -51,9 +54,11 @@ export const ChannelPosts = ({ channelId, channelName, avatarUrl, canManage, isS
   };
 
   const avatar = (
-    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center overflow-hidden shrink-0">
-      {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span className="text-primary-foreground font-bold">{channelName.charAt(0).toUpperCase()}</span>}
-    </div>
+    <AvatarFrame frame={frames[channelId]}>
+      <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center overflow-hidden shrink-0">
+        {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span className="text-primary-foreground font-bold">{channelName.charAt(0).toUpperCase()}</span>}
+      </div>
+    </AvatarFrame>
   );
 
   return (

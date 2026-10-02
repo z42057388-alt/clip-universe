@@ -8,13 +8,14 @@ import { Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Link } from "react-router-dom";
+import { AvatarFrame } from "@/components/AvatarFrame";
 
 interface Comment {
   id: string;
   content: string;
   created_at: string;
   user_id: string;
-  profile?: { username: string; avatar_url: string | null };
+  profile?: { username: string; avatar_url: string | null; active_frame?: string | null };
 }
 
 interface CommentSectionProps {
@@ -39,7 +40,7 @@ export const CommentSection = ({ videoId }: CommentSectionProps) => {
       const userIds = [...new Set(data.map((c) => c.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("user_id, username, avatar_url")
+        .select("user_id, username, avatar_url, active_frame")
         .in("user_id", userIds);
 
       const profileMap = new Map(profiles?.map((p) => [p.user_id, p]) || []);
@@ -126,15 +127,17 @@ export const CommentSection = ({ videoId }: CommentSectionProps) => {
       <div className="space-y-4">
         {comments.map((comment) => (
           <div key={comment.id} className="flex gap-3">
-            <Link to={`/channel/${comment.user_id}`} className="w-10 h-10 rounded-full bg-primary/80 flex-shrink-0 flex items-center justify-center overflow-hidden hover:opacity-80 transition-opacity">
-              {comment.profile?.avatar_url ? (
-                <img src={comment.profile.avatar_url} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-primary-foreground font-bold text-sm">
-                  {comment.profile?.username?.charAt(0)?.toUpperCase() || "U"}
-                </span>
-              )}
-            </Link>
+            <AvatarFrame frame={comment.profile?.active_frame}>
+              <Link to={`/channel/${comment.user_id}`} className="w-10 h-10 rounded-full bg-primary/80 flex-shrink-0 flex items-center justify-center overflow-hidden hover:opacity-80 transition-opacity">
+                {comment.profile?.avatar_url ? (
+                  <img src={comment.profile.avatar_url} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-primary-foreground font-bold text-sm">
+                    {comment.profile?.username?.charAt(0)?.toUpperCase() || "U"}
+                  </span>
+                )}
+              </Link>
+            </AvatarFrame>
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <Link to={`/channel/${comment.user_id}`} className="text-sm font-medium text-foreground hover:text-primary">
