@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
+import { AvatarFrame } from "@/components/AvatarFrame";
 
 interface Profile {
   user_id: string;
@@ -21,6 +22,7 @@ interface Profile {
   bio: string | null;
   is_verified?: boolean;
   badges?: string[];
+  active_frame?: string | null;
 }
 
 const BADGES = [
@@ -44,7 +46,7 @@ interface Collab {
   id: string;
   collaborator_id: string;
   status: string;
-  profile?: { username: string; avatar_url: string | null };
+  profile?: { username: string; avatar_url: string | null; active_frame?: string | null };
 }
 
 type Tab = "videos" | "posts" | "about" | "collabs";
@@ -93,7 +95,7 @@ const ChannelPage = () => {
     const { data } = await supabase.from("channel_collaborators").select("id, collaborator_id, status").eq("channel_id", userId);
     const list = (data || []) as Collab[];
     if (list.length) {
-      const { data: profs } = await supabase.from("profiles").select("user_id, username, avatar_url").in("user_id", list.map((c) => c.collaborator_id));
+      const { data: profs } = await supabase.from("profiles").select("user_id, username, avatar_url, active_frame").in("user_id", list.map((c) => c.collaborator_id));
       list.forEach((c) => (c.profile = profs?.find((p) => p.user_id === c.collaborator_id)));
     }
     setCollabs(list);
@@ -116,7 +118,7 @@ const ChannelPage = () => {
     if (!userId) return;
     const load = async () => {
       const [profileRes, videosRes, subsRes] = await Promise.all([
-        supabase.from("profiles").select("user_id, username, avatar_url, created_at, bio, is_verified, badges, is_banned").eq("user_id", userId).maybeSingle(),
+        supabase.from("profiles").select("user_id, username, avatar_url, created_at, bio, is_verified, badges, is_banned, active_frame").eq("user_id", userId).maybeSingle(),
         supabase.from("videos").select("id, title, thumbnail_url, channel_name, views, likes, created_at, pinned_at").eq("user_id", userId),
         supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("channel_id", userId),
       ]);
