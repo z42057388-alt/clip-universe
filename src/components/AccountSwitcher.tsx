@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getSavedAccounts, switchAccount, SavedAccount } from "@/lib/accounts";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { AvatarFrame } from "@/components/AvatarFrame";
+import { useActiveFrames } from "@/hooks/useActiveFrames";
 
 export const AccountSwitcher = () => {
   const { user, signOut } = useAuth();
@@ -40,6 +42,7 @@ export const AccountSwitcher = () => {
 
   const current = accounts.find((a) => a.userId === user.id);
   const others = accounts.filter((a) => a.userId !== user.id);
+  const frames = useActiveFrames([user.id, ...others.map((a) => a.userId), ...coChannels.map((c) => c.user_id)]);
 
   const handleSwitch = async (account: SavedAccount) => {
     setOpen(false);
@@ -53,14 +56,17 @@ export const AccountSwitcher = () => {
     navigate("/auth");
   };
 
-  const Avatar = ({ url, name, size }: { url: string | null; name: string; size: string }) =>
-    url ? (
-      <img src={url} alt={name} className={`${size} rounded-full object-cover`} />
-    ) : (
-      <div className={`${size} rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold`}>
-        {name.charAt(0).toUpperCase()}
-      </div>
-    );
+  const Avatar = ({ url, name, size, userId }: { url: string | null; name: string; size: string; userId?: string }) => (
+    <AvatarFrame frame={userId ? frames[userId] : undefined}>
+      {url ? (
+        <img src={url} alt={name} className={`${size} rounded-full object-cover`} />
+      ) : (
+        <div className={`${size} rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold`}>
+          {name.charAt(0).toUpperCase()}
+        </div>
+      )}
+    </AvatarFrame>
+  );
 
   return (
     <div className="relative" ref={ref}>
