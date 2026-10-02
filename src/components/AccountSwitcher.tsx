@@ -71,7 +71,7 @@ export const AccountSwitcher = () => {
   return (
     <div className="relative" ref={ref}>
       <button onClick={() => setOpen(!open)} className="flex items-center gap-1 p-1 rounded-full hover:bg-surface-hover transition-colors" title="Аккаунты">
-        <Avatar url={current?.avatarUrl || null} name={current?.username || user.email || "U"} size="w-8 h-8 text-sm" />
+        <Avatar url={current?.avatarUrl || null} name={current?.username || user.email || "U"} size="w-8 h-8 text-sm" userId={user.id} />
         <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
       </button>
 
@@ -80,7 +80,7 @@ export const AccountSwitcher = () => {
           <div className="p-3 border-b border-border">
             <p className="text-xs text-muted-foreground mb-2">Текущий аккаунт</p>
             <div className="flex items-center gap-3">
-              <Avatar url={current?.avatarUrl || null} name={current?.username || "U"} size="w-10 h-10" />
+              <Avatar url={current?.avatarUrl || null} name={current?.username || "U"} size="w-10 h-10" userId={user.id} />
               <div className="flex-1 min-w-0">
                 <p className="text-foreground font-medium truncate">{current?.username || "Пользователь"}</p>
                 <p className="text-muted-foreground text-xs truncate">{user.email}</p>
@@ -94,7 +94,7 @@ export const AccountSwitcher = () => {
               <p className="px-3 pt-2 pb-1 text-xs text-muted-foreground">Переключиться</p>
               {others.map((a) => (
                 <button key={a.userId} onClick={() => handleSwitch(a)} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-surface-hover transition-colors">
-                  <Avatar url={a.avatarUrl} name={a.username} size="w-9 h-9 text-sm" />
+                  <Avatar url={a.avatarUrl} name={a.username} size="w-9 h-9 text-sm" userId={a.userId} />
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-foreground text-sm truncate">{a.username}</p>
                     <p className="text-muted-foreground text-xs truncate">{a.email}</p>
@@ -109,7 +109,7 @@ export const AccountSwitcher = () => {
               <p className="px-3 pt-2 pb-1 text-xs text-muted-foreground">Каналы, где вы соавтор</p>
               {coChannels.map((c) => (
                 <button key={c.user_id} onClick={() => { setOpen(false); navigate(`/channel/${c.user_id}`); }} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-surface-hover transition-colors">
-                  <Avatar url={c.avatar_url} name={c.username} size="w-9 h-9 text-sm" />
+                  <Avatar url={c.avatar_url} name={c.username} size="w-9 h-9 text-sm" userId={c.user_id} />
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-foreground text-sm truncate">{c.username}</p>
                     <p className="text-muted-foreground text-xs truncate">@{c.username} · соавтор</p>
