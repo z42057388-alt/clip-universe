@@ -8,6 +8,8 @@ import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { AvatarFrame } from "@/components/AvatarFrame";
+import { useActiveFrames } from "@/hooks/useActiveFrames";
 
 interface Video {
   id: string;
@@ -32,6 +34,8 @@ const formatViews = (views: number): string => {
 const WatchPage = () => {
   const { id } = useParams<{ id: string }>();
   const [video, setVideo] = useState<Video | null>(null);
+  const frames = useActiveFrames([video?.user_id]);
+  const channelFrame = video?.user_id ? frames[video.user_id] : undefined;
   const [loading, setLoading] = useState(true);
   const [userReaction, setUserReaction] = useState<string | null>(null);
   const [reactionLoading, setReactionLoading] = useState(false);
