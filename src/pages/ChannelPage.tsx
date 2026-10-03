@@ -30,6 +30,7 @@ const BADGES = [
   { id: "green", label: "Зелёная — у пользователя есть собственная платформа", cls: "text-green-500" },
   { id: "purple", label: "Фиолетовая — участвовал в создании VidTube", cls: "text-purple-500" },
   { id: "white", label: "Белая — доверенный пользователь", cls: "text-white" },
+  { id: "creator", label: "Светло-серая — официальный аккаунт создателя", cls: "text-muted-foreground" },
 ];
 
 interface Video {
@@ -295,7 +296,7 @@ const ChannelPage = () => {
                   <DropdownMenuContent align="start" className="w-72">
                     <DropdownMenuLabel>Типы галочек</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {BADGES.map((b) => (
+                    {BADGES.filter((b) => b.id !== "creator" || targetIsAdmin).map((b) => (
                       <DropdownMenuCheckboxItem key={b.id} checked={badges.includes(b.id)} onSelect={(e) => e.preventDefault()} onCheckedChange={(v) => toggleBadge(b.id, !!v)}>
                         <BadgeCheck className={`w-4 h-4 mr-2 shrink-0 ${b.cls}`} />
                         <span className="text-sm">{b.label}</span>
