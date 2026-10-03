@@ -71,6 +71,13 @@
       "when": 1790828258675,
       "tag": "0009_fix_currency_trigger",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790986263044,
+      "tag": "0010_white_badge",
+      "breakpoints": true
     }
   ]
 }
