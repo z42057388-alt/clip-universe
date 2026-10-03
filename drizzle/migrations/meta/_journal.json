@@ -78,6 +78,13 @@
       "when": 1790986263044,
       "tag": "0010_white_badge",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790986825704,
+      "tag": "0011_creator_badge",
+      "breakpoints": true
     }
   ]
 }
