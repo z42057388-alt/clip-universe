@@ -28,6 +28,10 @@ export const RulesContent = () => (
                   <span className="w-4 h-4 rounded-full bg-purple-500 shrink-0 inline-block" />
                   <span><span className="text-foreground font-medium">Фиолетовая</span> — пользователь участвовал в создании VidTube.</span>
                 </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-white shrink-0 inline-block" />
+                  <span><span className="text-foreground font-medium">Белая</span> — доверенный пользователь.</span>
+                </li>
               </ul>
             </div>
 
