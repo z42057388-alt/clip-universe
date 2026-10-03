@@ -32,6 +32,10 @@ export const RulesContent = () => (
                   <span className="w-4 h-4 rounded-full bg-white shrink-0 inline-block" />
                   <span><span className="text-foreground font-medium">Белая</span> — доверенный пользователь.</span>
                 </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-muted-foreground shrink-0 inline-block" />
+                  <span><span className="text-foreground font-medium">Светло-серая</span> — подтверждает, что аккаунт действительно принадлежит создателю VidTube.</span>
+                </li>
               </ul>
             </div>
 
