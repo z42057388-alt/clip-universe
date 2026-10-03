@@ -29,6 +29,7 @@ const BADGES = [
   { id: "red", label: "Красная — аккаунт подтверждён VidTube", cls: "text-red-500" },
   { id: "green", label: "Зелёная — у пользователя есть собственная платформа", cls: "text-green-500" },
   { id: "purple", label: "Фиолетовая — участвовал в создании VidTube", cls: "text-purple-500" },
+  { id: "white", label: "Белая — доверенный пользователь", cls: "text-white" },
 ];
 
 interface Video {
