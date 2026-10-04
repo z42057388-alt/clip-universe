@@ -22,6 +22,12 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
     if (!user) { setCurrency(null); return; }
     supabase.from("profiles").select("currency").eq("user_id", user.id).maybeSingle()
       .then(({ data }) => setCurrency(data?.currency ?? 0));
+    const applyReward = (event: Event) => {
+      const amount = (event as CustomEvent<number>).detail;
+      setCurrency((current) => (current ?? 0) + amount);
+    };
+    window.addEventListener("vidtube:currency-reward", applyReward);
+    return () => window.removeEventListener("vidtube:currency-reward", applyReward);
   }, [user]);
   const navigate = useNavigate();
 

@@ -94,13 +94,15 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
 
       if (insertErr) throw insertErr;
 
-      let rewardMsg = "";
-      if (durationSeconds >= 120 && inserted && (channelId || user?.id) === user?.id) {
-        const { error: rewardErr } = await supabase.rpc("reward_video_upload", { _video_id: inserted.id });
-        rewardMsg = rewardErr ? "" : " +20 ViewTubdolar за видео от 2 минут!";
-      }
+      const rewarded = durationSeconds >= 120;
+      if (rewarded) window.dispatchEvent(new CustomEvent("vidtube:currency-reward", { detail: 20 }));
 
-      toast({ title: "Успех!", description: "Видео загружено." + rewardMsg });
+      toast({
+        title: rewarded ? "+20 VTD начислено!" : "Видео опубликовано!",
+        description: rewarded
+          ? `Видео длительностью ${Math.floor(durationSeconds / 60)}:${String(durationSeconds % 60).padStart(2, "0")} опубликовано. Баланс автора пополнен автоматически.`
+          : "Награда начисляется за видео длительностью от 2 минут.",
+      });
       setTitle("");
       setDescription("");
       setChannelName("");
