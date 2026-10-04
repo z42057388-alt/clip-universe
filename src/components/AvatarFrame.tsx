@@ -6,6 +6,7 @@ import goldImg from "@/assets/frames/gold.png";
 import neonImg from "@/assets/frames/neon.png";
 import rubyImg from "@/assets/frames/ruby.png";
 import diamondRedImg from "@/assets/frames/diamond_red.png";
+import cyberpunkRedImg from "@/assets/frames/cyberpunk_red.png";
 
 // Maps frame id -> frame overlay image (kept client-side so bundler includes them)
 export const FRAME_IMAGES: Record<string, string> = {
@@ -14,6 +15,7 @@ export const FRAME_IMAGES: Record<string, string> = {
   gold: goldImg,
   neon: neonImg,
   ruby: rubyImg,
+  cyberpunk_red: cyberpunkRedImg,
   diamond_red: diamondRedImg,
 };
 
