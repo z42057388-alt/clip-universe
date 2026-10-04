@@ -5,3 +5,4 @@
 - [x] Avatar frame shop (diamond-red = 5000) + backpack + equip frame
 - [x] Homepage video pinning for admin + moderators, max 10
 - [x] Creator-only light-gray verification badge
+- [x] Cyberpunk neon-red avatar frame (4000 VTD)
