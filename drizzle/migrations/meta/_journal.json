@@ -85,6 +85,13 @@
       "when": 1790986825704,
       "tag": "0011_creator_badge",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791089142933,
+      "tag": "0012_automatic_video_upload_reward",
+      "breakpoints": true
     }
   ]
 }
