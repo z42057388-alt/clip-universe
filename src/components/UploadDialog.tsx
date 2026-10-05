@@ -95,7 +95,8 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
       if (insertErr) throw insertErr;
 
       const rewarded = durationSeconds >= 120;
-      if (rewarded) window.dispatchEvent(new CustomEvent("vidtube:currency-reward", { detail: 20 }));
+      const rewardedCurrentUser = rewarded && (channelId || user?.id) === user?.id;
+      if (rewardedCurrentUser) window.dispatchEvent(new CustomEvent("vidtube:currency-reward", { detail: 20 }));
 
       toast({
         title: rewarded ? "+20 VTD начислено!" : "Видео опубликовано!",
