@@ -49,7 +49,7 @@ interface Collab {
   id: string;
   collaborator_id: string;
   status: string;
-  profile?: { username: string; avatar_url: string | null; active_frame?: string | null };
+  profile?: { username: string; handle?: string | null; avatar_url: string | null; active_frame?: string | null };
 }
 
 type Tab = "videos" | "posts" | "about" | "collabs";
@@ -98,7 +98,7 @@ const ChannelPage = () => {
     const { data } = await supabase.from("channel_collaborators").select("id, collaborator_id, status").eq("channel_id", userId);
     const list = (data || []) as Collab[];
     if (list.length) {
-      const { data: profs } = await supabase.from("profiles").select("user_id, username, avatar_url, active_frame").in("user_id", list.map((c) => c.collaborator_id));
+      const { data: profs } = await supabase.from("profiles").select("user_id, username, handle, avatar_url, active_frame").in("user_id", list.map((c) => c.collaborator_id));
       list.forEach((c) => (c.profile = profs?.find((p) => p.user_id === c.collaborator_id)));
     }
     setCollabs(list);
@@ -425,7 +425,7 @@ const ChannelPage = () => {
                       {c.profile?.avatar_url ? <img src={c.profile.avatar_url} alt="" className="w-full h-full object-cover" /> : <span className="text-primary-foreground font-bold">{c.profile?.username?.charAt(0).toUpperCase()}</span>}
                     </Link>
                   </AvatarFrame>
-                  <Link to={`/channel/${c.collaborator_id}`} className="flex-1 text-foreground hover:underline">@{c.profile?.username || "Пользователь"}</Link>
+                  <Link to={`/channel/${c.collaborator_id}`} className="flex-1 text-foreground hover:underline">@{c.profile?.handle || c.profile?.username || "Пользователь"}</Link>
                   {c.status === "pending" && <span className="text-xs text-muted-foreground">Ожидает ответа</span>}
                   {(isOwner || user?.id === c.collaborator_id) && (
                     <button onClick={() => removeCollab(c.id)} className="p-1.5 rounded-full hover:bg-surface-hover" title="Убрать">
