@@ -42,12 +42,20 @@ const ProfileEditPage = () => {
     setAvatarUrl(data.publicUrl + "?t=" + Date.now());
   };
 
+  const cleanHandle = handle.trim().replace(/^@+/, "").toLowerCase();
+  const handleValid = /^[a-z0-9_]{3,30}$/.test(cleanHandle);
+
   const handleSave = async () => {
     if (!user || !username.trim()) return;
+    if (!handleValid) {
+      toast({ title: "Неверный юзернейм", description: "Только латинские буквы, цифры и _, от 3 до 30 символов", variant: "destructive" });
+      return;
+    }
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({ username: username.trim(), avatar_url: avatarUrl }).eq("user_id", user.id);
+    const { error } = await supabase.from("profiles").update({ username: username.trim(), handle: cleanHandle, avatar_url: avatarUrl }).eq("user_id", user.id);
     if (error) {
-      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+      const msg = error.message.includes("profiles_handle_unique") ? "Этот юзернейм уже занят" : error.message;
+      toast({ title: "Ошибка", description: msg, variant: "destructive" });
     } else {
       // Also update channel_name on all user's videos
       await supabase.from("videos").update({ channel_name: username.trim() }).eq("user_id", user.id);
@@ -92,6 +100,15 @@ const ProfileEditPage = () => {
           <div>
             <label className="text-sm text-muted-foreground mb-1 block">Имя канала</label>
             <Input value={username} onChange={(e) => setUsername(e.target.value)} className="bg-surface border-border text-foreground" />
+          </div>
+
+          <div>
+            <label className="text-sm text-muted-foreground mb-1 block">Юзернейм канала</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+              <Input value={handle} onChange={(e) => setHandle(e.target.value)} maxLength={30} className="bg-surface border-border text-foreground pl-7" placeholder="username" />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Латинские буквы, цифры и _. Показывается как @{cleanHandle || "username"}</p>
           </div>
 
           <Button onClick={handleSave} disabled={saving || !username.trim()} className="w-full">
