@@ -272,6 +272,7 @@ export type Database = {
           bio: string | null
           created_at: string
           currency: number
+          handle: string | null
           id: string
           is_banned: boolean
           is_verified: boolean
@@ -287,6 +288,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           currency?: number
+          handle?: string | null
           id?: string
           is_banned?: boolean
           is_verified?: boolean
@@ -302,6 +304,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           currency?: number
+          handle?: string | null
           id?: string
           is_banned?: boolean
           is_verified?: boolean

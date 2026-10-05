@@ -92,6 +92,13 @@
       "when": 1791089142933,
       "tag": "0012_automatic_video_upload_reward",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791173027804,
+      "tag": "0013_channel_handle",
+      "breakpoints": true
     }
   ]
 }
