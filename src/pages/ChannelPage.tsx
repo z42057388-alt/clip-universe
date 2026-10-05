@@ -17,6 +17,7 @@ import { AvatarFrame } from "@/components/AvatarFrame";
 interface Profile {
   user_id: string;
   username: string;
+  handle?: string | null;
   avatar_url: string | null;
   created_at: string;
   bio: string | null;
@@ -48,7 +49,7 @@ interface Collab {
   id: string;
   collaborator_id: string;
   status: string;
-  profile?: { username: string; avatar_url: string | null; active_frame?: string | null };
+  profile?: { username: string; handle?: string | null; avatar_url: string | null; active_frame?: string | null };
 }
 
 type Tab = "videos" | "posts" | "about" | "collabs";
@@ -97,7 +98,7 @@ const ChannelPage = () => {
     const { data } = await supabase.from("channel_collaborators").select("id, collaborator_id, status").eq("channel_id", userId);
     const list = (data || []) as Collab[];
     if (list.length) {
-      const { data: profs } = await supabase.from("profiles").select("user_id, username, avatar_url, active_frame").in("user_id", list.map((c) => c.collaborator_id));
+      const { data: profs } = await supabase.from("profiles").select("user_id, username, handle, avatar_url, active_frame").in("user_id", list.map((c) => c.collaborator_id));
       list.forEach((c) => (c.profile = profs?.find((p) => p.user_id === c.collaborator_id)));
     }
     setCollabs(list);
@@ -120,7 +121,7 @@ const ChannelPage = () => {
     if (!userId) return;
     const load = async () => {
       const [profileRes, videosRes, subsRes] = await Promise.all([
-        supabase.from("profiles").select("user_id, username, avatar_url, created_at, bio, is_verified, badges, is_banned, active_frame").eq("user_id", userId).maybeSingle(),
+        supabase.from("profiles").select("user_id, username, handle, avatar_url, created_at, bio, is_verified, badges, is_banned, active_frame").eq("user_id", userId).maybeSingle(),
         supabase.from("videos").select("id, title, thumbnail_url, channel_name, views, likes, created_at, pinned_at").eq("user_id", userId),
         supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("channel_id", userId),
       ]);
@@ -137,12 +138,12 @@ const ChannelPage = () => {
   const invite = async () => {
     const name = inviteName.trim().replace(/^@+/, "");
     if (!name || !userId) return;
-    const { data: target } = await supabase.from("profiles").select("user_id, username").ilike("username", name).maybeSingle();
+    const { data: target } = await supabase.from("profiles").select("user_id, username, handle").ilike("handle", name).maybeSingle();
     if (!target) return toast({ title: "Пользователь не найден", description: `Нет канала с юзернеймом @${name}`, variant: "destructive" });
     if (target.user_id === userId) return toast({ title: "Нельзя пригласить себя", variant: "destructive" });
     const { error } = await supabase.from("channel_collaborators").insert({ channel_id: userId, collaborator_id: target.user_id });
     if (error) return toast({ title: "Не удалось пригласить", description: "Возможно, приглашение уже отправлено", variant: "destructive" });
-    toast({ title: "Приглашение отправлено", description: `@${target.username} получит уведомление` });
+    toast({ title: "Приглашение отправлено", description: `@${target.handle || target.username} получит уведомление` });
     setInviteName("");
     loadCollabs();
   };
@@ -264,7 +265,7 @@ const ChannelPage = () => {
               {BADGES.filter((b) => badges.includes(b.id)).map((b) => (
                 <span key={b.id} title={b.label}><BadgeCheck className={`w-5 h-5 shrink-0 ${b.cls}`} aria-label={b.label} /></span>
               ))}
-              <span className="text-muted-foreground text-sm truncate">@{profile.username}</span>
+              <span className="text-muted-foreground text-sm truncate">@{profile.handle || profile.username}</span>
               {isOwner && (
                 <Link to="/profile/edit" className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="Редактировать">
                   <Settings className="w-4 h-4 text-muted-foreground" />
@@ -424,7 +425,7 @@ const ChannelPage = () => {
                       {c.profile?.avatar_url ? <img src={c.profile.avatar_url} alt="" className="w-full h-full object-cover" /> : <span className="text-primary-foreground font-bold">{c.profile?.username?.charAt(0).toUpperCase()}</span>}
                     </Link>
                   </AvatarFrame>
-                  <Link to={`/channel/${c.collaborator_id}`} className="flex-1 text-foreground hover:underline">@{c.profile?.username || "Пользователь"}</Link>
+                  <Link to={`/channel/${c.collaborator_id}`} className="flex-1 text-foreground hover:underline">@{c.profile?.handle || c.profile?.username || "Пользователь"}</Link>
                   {c.status === "pending" && <span className="text-xs text-muted-foreground">Ожидает ответа</span>}
                   {(isOwner || user?.id === c.collaborator_id) && (
                     <button onClick={() => removeCollab(c.id)} className="p-1.5 rounded-full hover:bg-surface-hover" title="Убрать">
