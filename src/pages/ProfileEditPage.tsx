@@ -12,6 +12,7 @@ const ProfileEditPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [username, setUsername] = useState("");
+  const [handle, setHandle] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -20,9 +21,10 @@ const ProfileEditPage = () => {
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
     const load = async () => {
-      const { data } = await supabase.from("profiles").select("username, avatar_url").eq("user_id", user.id).maybeSingle();
+      const { data } = await supabase.from("profiles").select("username, handle, avatar_url").eq("user_id", user.id).maybeSingle();
       if (data) {
         setUsername(data.username);
+        setHandle(data.handle || "");
         setAvatarUrl(data.avatar_url);
       }
       setLoading(false);
