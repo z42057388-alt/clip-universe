@@ -17,6 +17,7 @@ import { AvatarFrame } from "@/components/AvatarFrame";
 interface Profile {
   user_id: string;
   username: string;
+  handle?: string | null;
   avatar_url: string | null;
   created_at: string;
   bio: string | null;
@@ -120,7 +121,7 @@ const ChannelPage = () => {
     if (!userId) return;
     const load = async () => {
       const [profileRes, videosRes, subsRes] = await Promise.all([
-        supabase.from("profiles").select("user_id, username, avatar_url, created_at, bio, is_verified, badges, is_banned, active_frame").eq("user_id", userId).maybeSingle(),
+        supabase.from("profiles").select("user_id, username, handle, avatar_url, created_at, bio, is_verified, badges, is_banned, active_frame").eq("user_id", userId).maybeSingle(),
         supabase.from("videos").select("id, title, thumbnail_url, channel_name, views, likes, created_at, pinned_at").eq("user_id", userId),
         supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("channel_id", userId),
       ]);
@@ -137,12 +138,12 @@ const ChannelPage = () => {
   const invite = async () => {
     const name = inviteName.trim().replace(/^@+/, "");
     if (!name || !userId) return;
-    const { data: target } = await supabase.from("profiles").select("user_id, username").ilike("username", name).maybeSingle();
+    const { data: target } = await supabase.from("profiles").select("user_id, username, handle").ilike("handle", name).maybeSingle();
     if (!target) return toast({ title: "Пользователь не найден", description: `Нет канала с юзернеймом @${name}`, variant: "destructive" });
     if (target.user_id === userId) return toast({ title: "Нельзя пригласить себя", variant: "destructive" });
     const { error } = await supabase.from("channel_collaborators").insert({ channel_id: userId, collaborator_id: target.user_id });
     if (error) return toast({ title: "Не удалось пригласить", description: "Возможно, приглашение уже отправлено", variant: "destructive" });
-    toast({ title: "Приглашение отправлено", description: `@${target.username} получит уведомление` });
+    toast({ title: "Приглашение отправлено", description: `@${target.handle || target.username} получит уведомление` });
     setInviteName("");
     loadCollabs();
   };
@@ -264,7 +265,7 @@ const ChannelPage = () => {
               {BADGES.filter((b) => badges.includes(b.id)).map((b) => (
                 <span key={b.id} title={b.label}><BadgeCheck className={`w-5 h-5 shrink-0 ${b.cls}`} aria-label={b.label} /></span>
               ))}
-              <span className="text-muted-foreground text-sm truncate">@{profile.username}</span>
+              <span className="text-muted-foreground text-sm truncate">@{profile.handle || profile.username}</span>
               {isOwner && (
                 <Link to="/profile/edit" className="p-2 rounded-full hover:bg-surface-hover transition-colors" title="Редактировать">
                   <Settings className="w-4 h-4 text-muted-foreground" />
