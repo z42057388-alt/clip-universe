@@ -16,6 +16,7 @@ import RulesPage from "./pages/RulesPage";
 import ShopPage from "./pages/ShopPage";
 import BackpackPage from "./pages/BackpackPage";
 import OAuthConsent from "./pages/OAuthConsent";
+import ShortsPage from "./pages/ShortsPage";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/rules" element={<RulesPage />} />
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/backpack" element={<BackpackPage />} />
+            <Route path="/shorts" element={<ShortsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
