@@ -1,11 +1,13 @@
-import { Home, Flame, Music, Gamepad2, Film, Radio, Clock, ThumbsUp, ListVideo } from "lucide-react";
+import { Home, Flame, Music, Gamepad2, Film, Radio, Clock, ThumbsUp, ListVideo, Zap } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface SidebarProps {
   collapsed: boolean;
 }
 
 const menuItems = [
-  { icon: Home, label: "Главная", active: true },
+  { icon: Home, label: "Главная", path: "/" },
+  { icon: Zap, label: "Shorts", path: "/shorts" },
   { icon: Flame, label: "В тренде" },
   { icon: Music, label: "Музыка" },
   { icon: Gamepad2, label: "Игры" },
@@ -20,14 +22,19 @@ const libraryItems = [
 ];
 
 export const Sidebar = ({ collapsed }: SidebarProps) => {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const go = (p?: string) => p && navigate(p);
+
   if (collapsed) {
     return (
       <aside className="fixed left-0 top-14 bottom-0 w-[72px] bg-background z-40 overflow-y-auto hidden sm:flex flex-col items-center pt-2 gap-1">
         {menuItems.slice(0, 4).map((item) => (
           <button
             key={item.label}
+            onClick={() => go(item.path)}
             className={`flex flex-col items-center gap-1 p-2 rounded-lg w-16 transition-colors ${
-              item.active ? "bg-surface-hover" : "hover:bg-surface-hover"
+              item.path === pathname ? "bg-surface-hover" : "hover:bg-surface-hover"
             }`}
           >
             <item.icon className="w-5 h-5 text-foreground" />
@@ -44,8 +51,9 @@ export const Sidebar = ({ collapsed }: SidebarProps) => {
         {menuItems.map((item) => (
           <button
             key={item.label}
+            onClick={() => go(item.path)}
             className={`flex items-center gap-5 w-full px-3 py-2 rounded-lg transition-colors ${
-              item.active ? "bg-surface-hover" : "hover:bg-surface-hover"
+              item.path === pathname ? "bg-surface-hover" : "hover:bg-surface-hover"
             }`}
           >
             <item.icon className="w-5 h-5 text-foreground" />

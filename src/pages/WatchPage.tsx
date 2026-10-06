@@ -206,7 +206,7 @@ const WatchPage = () => {
           <ArrowLeft className="w-4 h-4" /> Назад
         </Link>
         <div className="aspect-video bg-surface rounded-2xl overflow-hidden mb-4">
-          <video src={video.video_url} controls autoPlay className="w-full h-full" />
+          <video src={video.video_url} controls autoPlay controlsList="nodownload" disablePictureInPicture onContextMenu={(e) => e.preventDefault()} className="w-full h-full" />
         </div>
         {editing ? (
           <div className="bg-surface rounded-xl p-4 mb-4 space-y-3">

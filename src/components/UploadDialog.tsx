@@ -21,6 +21,7 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [isShort, setIsShort] = useState(false);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -60,6 +61,11 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
       return;
     }
 
+    const durationSeconds = await getDuration(videoFile);
+    if (isShort && durationSeconds > 180) {
+      toast({ title: "Short слишком длинный", description: "Short может быть не длиннее 3 минут.", variant: "destructive" });
+      return;
+    }
     setUploading(true);
     try {
       const videoExt = videoFile.name.split(".").pop();
@@ -80,7 +86,6 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
       }
 
       const { data: { user } } = await supabase.auth.getUser();
-      const durationSeconds = await getDuration(videoFile);
 
       const { data: inserted, error: insertErr } = await supabase.from("videos").insert({
         title: title.trim(),
@@ -90,6 +95,7 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
         channel_name: channelName.trim() || "Anonymous",
         user_id: channelId || user?.id || null,
         duration_seconds: durationSeconds,
+        is_short: isShort,
       }).select("id").single();
 
       if (insertErr) throw insertErr;
@@ -150,6 +156,10 @@ export const UploadDialog = ({ open, onOpenChange }: UploadDialogProps) => {
           )}
           <Input placeholder="Название видео *" value={title} onChange={(e) => setTitle(e.target.value)} className="bg-surface border-border text-foreground" />
           <Textarea placeholder="Описание" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-surface border-border text-foreground resize-none" rows={3} />
+          <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+            <input type="checkbox" checked={isShort} onChange={(e) => setIsShort(e.target.checked)} className="accent-primary" />
+            Это Short (до 3 минут)
+          </label>
           <Button onClick={handleUpload} disabled={uploading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
             {uploading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Загрузка...</> : "Загрузить"}
           </Button>
