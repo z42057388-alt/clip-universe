@@ -8,7 +8,7 @@ import { ArrowLeft, Camera, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const ProfileEditPage = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [username, setUsername] = useState("");
@@ -19,6 +19,7 @@ const ProfileEditPage = () => {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { navigate("/auth"); return; }
     const load = async () => {
       const { data } = await supabase.from("profiles").select("username, handle, avatar_url").eq("user_id", user.id).maybeSingle();
@@ -30,7 +31,7 @@ const ProfileEditPage = () => {
       setLoading(false);
     };
     load();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const handleAvatarUpload = async (file: File) => {
     if (!user) return;
