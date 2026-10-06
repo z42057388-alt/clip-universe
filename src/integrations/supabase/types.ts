@@ -423,6 +423,7 @@ export type Database = {
           duration_seconds: number | null
           home_pinned_at: string | null
           id: string
+          is_short: boolean
           likes: number
           pinned_at: string | null
           thumbnail_url: string | null
@@ -440,6 +441,7 @@ export type Database = {
           duration_seconds?: number | null
           home_pinned_at?: string | null
           id?: string
+          is_short?: boolean
           likes?: number
           pinned_at?: string | null
           thumbnail_url?: string | null
@@ -457,6 +459,7 @@ export type Database = {
           duration_seconds?: number | null
           home_pinned_at?: string | null
           id?: string
+          is_short?: boolean
           likes?: number
           pinned_at?: string | null
           thumbnail_url?: string | null
