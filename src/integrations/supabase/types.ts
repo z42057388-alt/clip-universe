@@ -14,6 +14,120 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_recovery_requests: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          response: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          response?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          response?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      account_security_attempts: {
+        Row: {
+          attempts: number
+          blocked_until: string | null
+          bucket_hash: string
+          window_started_at: string
+        }
+        Insert: {
+          attempts?: number
+          blocked_until?: string | null
+          bucket_hash: string
+          window_started_at?: string
+        }
+        Update: {
+          attempts?: number
+          blocked_until?: string | null
+          bucket_hash?: string
+          window_started_at?: string
+        }
+        Relationships: []
+      }
+      account_security_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          encrypted_code: string
+          revision: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          encrypted_code: string
+          revision?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          encrypted_code?: string
+          revision?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      account_security_devices: {
+        Row: {
+          created_at: string
+          device_hash: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_hash: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      account_security_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_conversations: {
         Row: {
           created_at: string
@@ -481,6 +595,10 @@ export type Database = {
         Args: { _channel_id: string; _user_id: string }
         Returns: boolean
       }
+      consume_account_security_attempt: {
+        Args: { _bucket: string }
+        Returns: boolean
+      }
       equip_frame: { Args: { _frame: string }; Returns: undefined }
       give_currency: {
         Args: { _amount: number; _target: string }
@@ -500,6 +618,15 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      replace_account_security_code: {
+        Args: {
+          _encrypted: string
+          _expected: number
+          _hash: string
+          _user: string
+        }
+        Returns: number
+      }
       reward_video_upload: { Args: { _video_id: string }; Returns: undefined }
       set_badge: {
         Args: { _badge: string; _target: string; _value: boolean }
