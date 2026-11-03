@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Copy, Eye, EyeOff, RefreshCw, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 import { removeAccount } from '@/lib/accounts';
 import { securityRequest } from '@/lib/security/client';
 import { Button } from '@/components/ui/button';
@@ -67,6 +68,11 @@ export default function SecurityPage() {
     if(newPassword.length<12 || newPassword!==repeatPassword) {setMessage('Новый пароль: минимум 12 символов; оба поля должны совпадать.');return;}
     setBusy(true);setMessage('');
     try {
+      if (!user?.email) { setMessage('Для изменения пароля потребуется подтверждённая почта.'); return; }
+      const verifier = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+      const { data: verified, error: verifyError } = await verifier.auth.signInWithPassword({ email: user.email, password: currentPassword });
+      if (verifyError || verified.user?.id !== user.id) { setMessage('Текущий пароль неверный.'); return; }
+      if (verified.session) await verifier.auth.signOut({ scope: 'local' });
       const {error}=await supabase.auth.updateUser({password:newPassword,current_password:currentPassword});
       if(error) {setMessage('Не удалось изменить пароль. Проверьте текущий пароль и требования к новому.');return;}
       setCurrentPassword('');setNewPassword('');setRepeatPassword('');
@@ -88,7 +94,7 @@ export default function SecurityPage() {
     <header className="space-y-2"><ShieldCheck className="h-8 w-8 text-primary"/><h1 className="text-2xl font-bold">Код безопасности</h1><p className="text-muted-foreground">Действует бессрочно, пока вы не замените его. Сохраните код в надёжном месте.</p></header>
     {message && <p role="status" className="border-l-2 border-primary pl-3 text-sm break-words">{message}</p>}
     <section className="space-y-4">
-      <p className="text-sm text-muted-foreground">{status?.exists?'Код уже создан. По умолчанию он скрыт.':'Защита ещё не включена. Создайте свой уникальный код.'}</p>
+      <p className="text-sm text-muted-foreground">{!status?'Проверяем состояние защиты…':status.exists?'Код уже создан. По умолчанию он скрыт.':'Защита ещё не включена. Создайте свой уникальный код.'}</p>
       <div className="flex items-start gap-2 border border-border rounded-md p-3 min-h-14">
         <output aria-label="Текущий код безопасности" className="font-mono break-all flex-1 min-w-0">{code || (status?.exists?'••••••••••••••••••••••••':'Код ещё не создан')}</output>
         {status?.exists && <Button variant="ghost" size="icon" aria-label={code?'Скрыть код':'Показать код'} title={code?'Скрыть код':'Показать код'} disabled={busy} onClick={()=>code?setCode(''):operate('reveal')}>{code?<EyeOff className="h-4 w-4"/>:<Eye className="h-4 w-4"/>}</Button>}
