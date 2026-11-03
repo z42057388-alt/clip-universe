@@ -125,6 +125,7 @@ export const AuthPage = () => {
           Войти через Google
         </Button>
         <p className="text-center text-muted-foreground text-sm mt-4">
+          <Button variant="outline" className="w-full mb-4 whitespace-normal" onClick={() => navigate('/recover')}>Восстановить доступ по коду безопасности</Button>
           {isLogin ? "Нет аккаунта?" : "Уже есть аккаунт?"}{" "}
           <button onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline">
             {isLogin ? "Регистрация" : "Войти"}

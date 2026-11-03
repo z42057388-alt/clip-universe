@@ -7,7 +7,7 @@ function allowedOrigin(origin: string) {
   return origin==='https://clip-universe.lovable.app' || origin==='http://localhost:8080' || /^https:\/\/id-preview--[a-z0-9-]+\.lovable\.app$/.test(origin);
 }
 const Body = z.object({
-  action:z.enum(['status','create','rotate','reveal','recover','device','support','password_event','revoke_sessions']),
+  action:z.enum(['status','create','rotate','reveal','recover','device','support','revoke_sessions']),
   code:z.string().max(40).optional(), password:z.string().max(1024).optional(),
   confirmed:z.boolean().optional(), revision:z.number().int().min(0).optional(),
   device:z.string().uuid().optional(), description:z.string().min(10).max(2000).optional(),
@@ -67,11 +67,6 @@ Deno.serve(async req => {
       const {error}=await admin.from('account_security_devices').insert({user_id:user.id,device_hash:await digest(`device:${user.id}:${body.device}`,secret)});
       if(error && error.code!=='23505') throw new Error('device');
       if(!error) await record(user.id,'new_browser','Вход с нового браузера. Если это были не вы, завершите сеансы и обратитесь в поддержку.');
-      return reply({ok:true});
-    }
-    if(body.action==='password_event') {
-      // This is an informational client-reported event, not proof of an Auth password change.
-      await record(user.id,'password_changed','Получено сообщение об изменении пароля из настроек.');
       return reply({ok:true});
     }
     if(body.action==='support') {
