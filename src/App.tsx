@@ -17,6 +17,9 @@ import ShopPage from "./pages/ShopPage";
 import BackpackPage from "./pages/BackpackPage";
 import OAuthConsent from "./pages/OAuthConsent";
 import ShortsPage from "./pages/ShortsPage";
+import SecurityPage from "./pages/SecurityPage";
+import RecoveryPage from "./pages/RecoveryPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +37,9 @@ const App = () => (
             <Route path="/channel/:userId" element={<ChannelPage />} />
             <Route path="/profile/edit" element={<ProfileEditPage />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/settings/security" element={<SecurityPage />} />
+            <Route path="/recover" element={<RecoveryPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/ai-chat" element={<AIChatPage />} />
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
             <Route path="/rules" element={<RulesPage />} />

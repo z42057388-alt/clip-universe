@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { saveCurrentAccount } from "@/lib/accounts";
+import { securityRequest } from "@/lib/security/client";
 
 interface AuthContextType {
   session: Session | null;
@@ -34,6 +35,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!session?.user.id) return;
+    let device = localStorage.getItem('vidtube_security_device');
+    if (!device) {
+      device = crypto.randomUUID();
+      localStorage.setItem('vidtube_security_device', device);
+    }
+    securityRequest('device', { device }).catch(() => { /* Security endpoint failures must not block login. */ });
+  }, [session?.user.id]);
 
   const signOut = async () => {
     await supabase.auth.signOut();

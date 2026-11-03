@@ -7,6 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AvatarFrame } from "@/components/AvatarFrame";
 import { useActiveFrames } from "@/hooks/useActiveFrames";
+import { Button } from "@/components/ui/button";
 
 export const AccountSwitcher = () => {
   const { user, signOut } = useAuth();
@@ -120,6 +121,7 @@ export const AccountSwitcher = () => {
           )}
 
           <div className="border-t border-border py-1">
+            <Button variant="ghost" className="w-full justify-start rounded-none px-3" onClick={() => { setOpen(false); navigate('/settings/security'); }}>Код безопасности</Button>
             <button onClick={() => { setOpen(false); navigate(`/channel/${user.id}`); }} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-surface-hover transition-colors text-foreground text-sm">
               <User className="w-4 h-4 text-muted-foreground" /> Мой канал
             </button>

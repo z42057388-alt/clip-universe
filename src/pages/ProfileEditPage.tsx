@@ -76,6 +76,7 @@ const ProfileEditPage = () => {
         </button>
 
         <h1 className="text-xl font-bold text-foreground mb-6">Редактировать профиль</h1>
+        <Button variant="outline" className="mb-6 w-full" onClick={() => navigate('/settings/security')}>Код безопасности и защита аккаунта</Button>
 
         {/* Avatar */}
         <div className="flex justify-center mb-6">
