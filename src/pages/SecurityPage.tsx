@@ -40,6 +40,7 @@ export default function SecurityPage() {
     setEvents(history.data || []); setRequests(tickets.data || []);
   };
   useEffect(()=>{
+    setCode(''); setProof(''); setStatus(null); setCurrentPassword(''); setNewPassword(''); setRepeatPassword('');
     if(loading) return;
     if(!user) { navigate('/auth?next=/settings/security',{replace:true}); return; }
     let alive=true;

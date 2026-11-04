@@ -93,7 +93,7 @@ Deno.serve(async req => {
     if(body.action==='status') return reply({exists:!!stored,revision:stored?.revision || 0,updated_at:stored?.updated_at || null});
     if(!await consume(`manage:${user.id}`)) return reply({error:'Слишком много попыток. Попробуйте через 15 минут.'},429);
     let proof=false;
-    if(body.code && stored) proof=await digest(`code:${body.code}`,secret)===stored.code_hash;
+    if(body.action!=='change_password' && body.code && stored) proof=await digest(`code:${body.code}`,secret)===stored.code_hash;
     if(!proof && body.password && user.email) {
       const verifier=createClient(url,anon,{auth:{persistSession:false,autoRefreshToken:false}});
       const {data,error}=await verifier.auth.signInWithPassword({email:user.email,password:body.password});
