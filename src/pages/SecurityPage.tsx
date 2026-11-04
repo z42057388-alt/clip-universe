@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Copy, Eye, EyeOff, RefreshCw, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { createClient } from '@supabase/supabase-js';
 import { removeAccount } from '@/lib/accounts';
 import { securityRequest } from '@/lib/security/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { SecurityWarning } from '@/components/SecurityWarning';
+import { RecoveryRequestsReview } from '@/components/RecoveryRequestsReview';
 import { AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 
 type Event = {id:string;event_type:string;created_at:string};
@@ -68,17 +68,11 @@ export default function SecurityPage() {
     if(newPassword.length<12 || newPassword!==repeatPassword) {setMessage('Новый пароль: минимум 12 символов; оба поля должны совпадать.');return;}
     setBusy(true);setMessage('');
     try {
-      if (!user?.email) { setMessage('Для изменения пароля потребуется подтверждённая почта.'); return; }
-      const verifier = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
-      const { data: verified, error: verifyError } = await verifier.auth.signInWithPassword({ email: user.email, password: currentPassword });
-      if (verifyError || verified.user?.id !== user.id) { setMessage('Текущий пароль неверный.'); return; }
-      if (verified.session) await verifier.auth.signOut({ scope: 'local' });
-      const {error}=await supabase.auth.updateUser({password:newPassword,current_password:currentPassword});
-      if(error) {setMessage('Не удалось изменить пароль. Проверьте текущий пароль и требования к новому.');return;}
+      await securityRequest('change_password',{password:currentPassword,new_password:newPassword,confirmed:true});
       setCurrentPassword('');setNewPassword('');setRepeatPassword('');
       setMessage('Пароль изменён. При подозрении на взлом завершите все сеансы и замените код безопасности.');
       await refresh();
-    } finally {setBusy(false);}
+    } catch(e) {setMessage(e instanceof Error?e.message:'Не удалось изменить пароль');} finally {setBusy(false);}
   }
   async function sendSupport(e:React.FormEvent) {
     e.preventDefault();setBusy(true);
@@ -121,6 +115,7 @@ export default function SecurityPage() {
       {requests.map(r=><div key={r.id} className="text-sm border-b border-border py-2 break-words"><p>{r.id} · {r.status==='pending'?'Ожидает проверки':r.status}</p>{r.response && <p>{r.response}</p>}</div>)}
     </section>
     <section className="border-t border-border pt-6 space-y-3"><h2 className="text-lg font-semibold">Журнал безопасности</h2>{events.length?events.map(event=><div className="flex flex-wrap justify-between gap-2 py-2 border-b border-border text-sm" key={event.id}><span>{labels[event.event_type] || 'Событие безопасности'}</span><time className="text-muted-foreground">{new Date(event.created_at).toLocaleString('ru-RU')}</time></div>):<p className="text-sm text-muted-foreground">Событий пока нет.</p>}</section>
+    <RecoveryRequestsReview />
     <AlertDialog open={!!confirm} onOpenChange={open=>{if(!open)setConfirm(null);}}><AlertDialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg"><AlertDialogTitle>{confirm==='revoke_sessions'?'Завершить все сеансы?':'Создать новый код безопасности?'}</AlertDialogTitle><AlertDialogDescription>{confirm==='revoke_sessions'?'Вы выйдете из аккаунта на всех устройствах. Для продолжения потребуется снова войти.':'Вы уверены, что хотите создать новый код безопасности? После успешной замены предыдущий код перестанет действовать.'}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel disabled={busy}>Отмена</AlertDialogCancel><AlertDialogAction disabled={busy} onClick={e=>{e.preventDefault();if(confirm)operate(confirm);}}>Подтвердить</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
   </main></div>;
 }

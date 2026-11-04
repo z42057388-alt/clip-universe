@@ -7,8 +7,10 @@ function allowedOrigin(origin: string) {
   return origin==='https://clip-universe.lovable.app' || origin==='http://localhost:8080' || /^https:\/\/id-preview--[a-z0-9-]+\.lovable\.app$/.test(origin);
 }
 const Body = z.object({
-  action:z.enum(['status','create','rotate','reveal','recover','device','support','revoke_sessions']),
+  action:z.enum(['status','create','rotate','reveal','recover','device','support','revoke_sessions','change_password','review_request']),
   code:z.string().max(40).optional(), password:z.string().max(1024).optional(),
+  new_password:z.string().min(12).max(1024).optional(),
+  request_id:z.string().uuid().optional(), status:z.enum(['reviewing','resolved','rejected']).optional(), response:z.string().min(1).max(2000).optional(),
   confirmed:z.boolean().optional(), revision:z.number().int().min(0).optional(),
   device:z.string().uuid().optional(), description:z.string().min(10).max(2000).optional(),
 }).strict();
@@ -62,6 +64,15 @@ Deno.serve(async req => {
     const {data:verified,error:userError}=await auth.auth.getUser(bearer.slice(7));
     const user=verified.user;
     if(userError || !user) return reply({error:'Войдите в аккаунт'},401);
+    if(body.action==='review_request') {
+      const {data:isAdmin,error:roleError}=await admin.rpc('has_role',{_user_id:user.id,_role:'admin'});
+      if(roleError || !isAdmin) return reply({error:'Недостаточно прав'},403);
+      if(!body.confirmed || !body.request_id || !body.status || !body.response) return reply({error:'Укажите результат проверки и ответ'},400);
+      const {data:ticket,error}=await admin.from('account_recovery_requests').update({status:body.status,response:body.response}).eq('id',body.request_id).select('user_id').single();
+      if(error) return reply({error:'Обращение не найдено'},400);
+      await record(ticket.user_id,'support_requested',`Ответ поддержки: ${body.response}`);
+      return reply({ok:true});
+    }
     if(body.action==='device') {
       if(!body.device) return reply({error:'Неверный запрос'},400);
       const {error}=await admin.from('account_security_devices').insert({user_id:user.id,device_hash:await digest(`device:${user.id}:${body.device}`,secret)});
@@ -95,6 +106,14 @@ Deno.serve(async req => {
     const signedAt=Date.parse(user.last_sign_in_at || '');
     if(!stored && body.action==='create') proof=proof || (!claimError && typeof issuedAt==='number' && Date.now()-issuedAt*1000<300000 && Number.isFinite(signedAt) && Date.now()-signedAt<300000);
     if(!proof) return reply({error:'Подтвердите действие текущим паролем или действующим кодом. Для первого создания можно войти заново.'},403);
+    if(body.action==='change_password') {
+      if(!body.password || !body.new_password || !body.confirmed) return reply({error:'Укажите текущий и новый пароль'},400);
+      // Use the signed-in user's normal Auth API; never an administrative password override.
+      const result=await fetch(`${url}/auth/v1/user`,{method:'PUT',headers:{Authorization:bearer,apikey:anon,'Content-Type':'application/json'},body:JSON.stringify({password:body.new_password,current_password:body.password})});
+      if(!result.ok) return reply({error:'Не удалось изменить пароль. Проверьте текущий пароль и требования к новому.'},400);
+      await record(user.id,'password_changed','Пароль аккаунта изменён. Если это были не вы, обратитесь в поддержку.');
+      return reply({ok:true});
+    }
     if(body.action==='revoke_sessions') {
       if(!body.confirmed) return reply({error:'Подтвердите завершение сеансов'},400);
       const {error}=await admin.auth.admin.signOut(bearer.slice(7),'global');
