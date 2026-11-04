@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-export type SecurityAction = 'status'|'create'|'rotate'|'reveal'|'recover'|'device'|'support'|'revoke_sessions';
+export type SecurityAction = 'status'|'create'|'rotate'|'reveal'|'recover'|'device'|'support'|'revoke_sessions'|'change_password'|'review_request';
 export async function securityRequest(action: SecurityAction, values: Record<string, unknown> = {}) {
   const { data, error } = await supabase.functions.invoke('account-security', { body: { action, ...values } });
   if (error) {
