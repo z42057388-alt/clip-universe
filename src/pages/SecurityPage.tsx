@@ -17,10 +17,9 @@ const labels:Record<string,string>={code_created:'Код создан',code_rota
 export default function SecurityPage() {
   const { user, loading }=useAuth();
   const navigate=useNavigate();
-  const [status,setStatus]=useState<{exists:boolean;revision:number}|null>(null);
+  const [status,setStatus]=useState<{exists:boolean;revision:number;email_verified?:boolean}|null>(null);
   const [code,setCode]=useState('');
-  const [proof,setProof]=useState('');
-  const [proofType,setProofType]=useState<'password'|'code'>('password');
+  const [email,setEmail]=useState('');
   const [message,setMessage]=useState('');
   const [busy,setBusy]=useState(false);
   const [confirm,setConfirm]=useState<'create'|'rotate'|'revoke_sessions'|null>(null);
@@ -40,7 +39,7 @@ export default function SecurityPage() {
     setEvents(history.data || []); setRequests(tickets.data || []);
   };
   useEffect(()=>{
-    setCode(''); setProof(''); setStatus(null); setCurrentPassword(''); setNewPassword(''); setRepeatPassword('');
+    setCode(''); setEmail(''); setStatus(null); setCurrentPassword(''); setNewPassword(''); setRepeatPassword('');
     if(loading) return;
     if(!user) { navigate('/auth?next=/settings/security',{replace:true}); return; }
     let alive=true;
@@ -60,11 +59,18 @@ export default function SecurityPage() {
     supabase.from('account_recovery_requests').select('id,status,response,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(10).then(({data})=>{if(alive)setRequests(data || []);});
     return ()=>{alive=false;};
   },[user?.id,loading,navigate]);
+  async function sendEmailProof(e:React.FormEvent) {
+    e.preventDefault();setBusy(true);setMessage('');
+    try {
+      await securityRequest('send_email_proof',{email});
+      setMessage('Ссылка отправлена на почту вашего аккаунта. Откройте её, затем нажмите «Показать код» или замените код.');
+    } catch(e) {setMessage(e instanceof Error?e.message:'Не удалось отправить ссылку');}
+    finally {setBusy(false);}
+  }
   async function operate(action:'create'|'rotate'|'reveal'|'revoke_sessions') {
     setBusy(true);setMessage('');
     try {
-      const result=await securityRequest(action,{[proofType]:proof,confirmed:action!=='reveal',...(action==='create'||action==='rotate'?{revision:status?.revision || 0}:{})});
-      setProof('');
+      const result=await securityRequest(action,{confirmed:action!=='reveal',...(action==='create'||action==='rotate'?{revision:status?.revision || 0}:{})});
       if(action==='revoke_sessions') {
         if(user) removeAccount(user.id);
         await supabase.auth.signOut({scope:'local'}); navigate('/auth'); return;
@@ -106,11 +112,14 @@ export default function SecurityPage() {
         {status?.exists && <Button variant="ghost" size="icon" aria-label={code?'Скрыть код':'Показать код'} title={code?'Скрыть код':'Показать код'} disabled={busy} onClick={()=>code?setCode(''):operate('reveal')}>{code?<EyeOff className="h-4 w-4"/>:<Eye className="h-4 w-4"/>}</Button>}
         <Button variant="ghost" size="icon" aria-label="Скопировать код" title="Скопировать код" disabled={!code || busy} onClick={async()=>{try{await navigator.clipboard.writeText(code);setMessage('Код скопирован. Сохраните его в надёжном месте.');}catch{setMessage('Не удалось скопировать. Сохраните показанный код вручную.');}}}><Copy className="h-4 w-4"/></Button>
       </div>
-      <fieldset className="space-y-2"><legend className="text-sm mb-2">Подтверждение владельца</legend><div className="flex gap-4 text-sm">
-        <label className="flex items-center gap-2"><input type="radio" name="proof" checked={proofType==='password'} onChange={()=>{setProofType('password');setProof('');}}/>Текущий пароль</label>
-        <label className="flex items-center gap-2"><input type="radio" name="proof" checked={proofType==='code'} onChange={()=>{setProofType('code');setProof('');}}/>Действующий код</label>
-      </div><Input type="password" autoComplete="off" aria-label={proofType==='password'?'Пароль для подтверждения':'Код для подтверждения'} value={proof} onChange={e=>setProof(e.target.value)} placeholder={proofType==='password'?'Текущий пароль':'Действующий код без изменений'}/></fieldset>
-      <p className="text-xs text-muted-foreground">Код создаётся автоматически при первом открытии этой страницы. Показ и замена требуют текущий пароль или код.</p>
+      <form onSubmit={sendEmailProof} className="space-y-3">
+        <label htmlFor="security-email" className="text-sm">Электронная почта аккаунта</label>
+        <Input id="security-email" type="email" autoComplete="email" aria-label="Почта для подтверждения" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Ваша электронная почта" maxLength={1000} required/>
+        <Button type="submit" variant="outline" disabled={busy}>Отправить ссылку подтверждения</Button>
+        <Button type="button" variant="ghost" disabled={busy} onClick={async()=>{setBusy(true);try{await refresh();}catch(e){setMessage(e instanceof Error?e.message:'Не удалось проверить подтверждение');}finally{setBusy(false);}}}>Проверить подтверждение</Button>
+        <p className="text-sm text-muted-foreground">{status?.email_verified?'Почта подтверждена. Можно показать или заменить код.':'Для показа и замены кода откройте ссылку из письма. Пароль вводить не нужно.'} Подтверждение действует 10 минут.</p>
+      </form>
+      <p className="text-xs text-muted-foreground">Код создаётся автоматически при первом открытии этой страницы.</p>
       <Button disabled={busy || !status} onClick={()=>setConfirm(status?.exists?'rotate':'create')} className="w-full sm:w-auto whitespace-normal"><RefreshCw className="h-4 w-4 mr-2 shrink-0"/>{status?.exists?'Сгенерировать новый код':'Создать код безопасности'}</Button>
       <p className="text-sm text-muted-foreground">После успешной замены предыдущий код перестанет работать. При ошибке он останется действительным. Пробелы, регистр и каждый символ имеют значение.</p>
       <p className="text-sm text-muted-foreground">Вход только по коду пока не поддерживается. Код используется для подтверждения обращения о восстановлении.</p>
