@@ -2,12 +2,14 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@4';
 import { generateCode, validCode, digest, encryptCode, decryptCode } from './crypto.ts';
+import { hasRecentEmailProof } from './email-proof.ts';
 
 function allowedOrigin(origin: string) {
   return origin==='https://clip-universe.lovable.app' || origin==='http://localhost:8080' || /^https:\/\/id-preview--[a-z0-9-]+\.lovable\.app$/.test(origin);
 }
 const Body = z.object({
-  action:z.enum(['status','create','rotate','reveal','recover','device','support','revoke_sessions','change_password','review_request']),
+  action:z.enum(['status','send_email_proof','create','rotate','reveal','recover','device','support','revoke_sessions','change_password','review_request']),
+  email:z.string().email().max(1000).optional(),
   code:z.string().max(40).optional(), password:z.string().max(1024).optional(),
   new_password:z.string().min(12).max(1024).optional(),
   request_id:z.string().uuid().optional(), status:z.enum(['reviewing','resolved','rejected']).optional(), response:z.string().min(1).max(2000).optional(),
@@ -64,6 +66,16 @@ Deno.serve(async req => {
     const {data:verified,error:userError}=await auth.auth.getUser(bearer.slice(7));
     const user=verified.user;
     if(userError || !user) return reply({error:'Войдите в аккаунт'},401);
+    if(body.action==='send_email_proof') {
+      if(!user.email || body.email?.trim().toLowerCase()!==user.email.toLowerCase()) return reply({error:'Введите почту текущего аккаунта'},400);
+      if(!origin || !allowedOrigin(origin)) return reply({error:'Откройте настройки на сайте VidTube'},400);
+      if(!await consume(`email-proof:${user.id}`)) return reply({error:'Слишком много писем. Попробуйте через 15 минут.'},429);
+      const {error}=await auth.auth.signInWithOtp({email:user.email,options:{shouldCreateUser:false,emailRedirectTo:`${origin}/settings/security`}});
+      if(error) return reply({error:'Не удалось отправить ссылку. Попробуйте позже.'},400);
+      return reply({ok:true});
+    }
+    const {data:claimData,error:claimError}=await auth.auth.getClaims(bearer.slice(7));
+    const emailProof=!claimError && !!claimData && hasRecentEmailProof(claimData.claims,user.id,user.email);
     if(body.action==='review_request') {
       const {data:isAdmin,error:roleError}=await admin.rpc('has_role',{_user_id:user.id,_role:'admin'});
       if(roleError || !isAdmin) return reply({error:'Недостаточно прав'},403);
@@ -90,9 +102,9 @@ Deno.serve(async req => {
     }
     const {data:stored,error:storedError}=await admin.from('account_security_codes').select('revision,updated_at,code_hash,encrypted_code').eq('user_id',user.id).maybeSingle();
     if(storedError) throw new Error('lookup');
-    if(body.action==='status') return reply({exists:!!stored,revision:stored?.revision || 0,updated_at:stored?.updated_at || null});
+    if(body.action==='status') return reply({exists:!!stored,revision:stored?.revision || 0,updated_at:stored?.updated_at || null,email_verified:emailProof});
     if(!await consume(`manage:${user.id}`)) return reply({error:'Слишком много попыток. Попробуйте через 15 минут.'},429);
-    let proof=false;
+    let proof=body.action!=='change_password' && emailProof;
     if(body.action!=='change_password' && body.code && stored) proof=await digest(`code:${body.code}`,secret)===stored.code_hash;
     if(!proof && body.password && user.email) {
       const verifier=createClient(url,anon,{auth:{persistSession:false,autoRefreshToken:false}});
@@ -103,7 +115,7 @@ Deno.serve(async req => {
     // Initial enrollment: any authenticated owner may auto-create their first code.
     // Creating a code when none exists exposes nothing, so no extra proof is required.
     if(!stored && body.action==='create') proof=true;
-    if(!proof) return reply({error:'Подтвердите действие текущим паролем или действующим кодом. Для первого создания можно войти заново.'},403);
+    if(!proof) return reply({error:'Подтвердите почту по ссылке из письма. Подтверждение действует 10 минут.'},403);
     if(body.action==='change_password') {
       if(!body.password || !body.new_password || !body.confirmed) return reply({error:'Укажите текущий и новый пароль'},400);
       // Use the signed-in user's normal Auth API; never an administrative password override.
