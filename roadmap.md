@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Replace password/code proof controls with account-bound email-link verification for code reveal/rotation and session termination
+- [ ] Verify email proof rejection rules and authenticated UI; actual mailbox link completion requires mailbox access
+
 - [x] Account security: permanent unique recovery codes, encrypted private settings and atomic confirmed rotation
 - [x] Code-verified recovery requests, temporary attempt protection and standard email reset pages
 - [x] Private security events, new-browser notifications, password changes and global session termination
