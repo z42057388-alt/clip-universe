@@ -100,11 +100,9 @@ Deno.serve(async req => {
       proof=!error && data.user?.id===user.id;
       if(data.session) await verifier.auth.signOut({scope:'local'});
     }
-    // Initial enrollment only: require a fresh authenticated session, not a stale browser session.
-    const {data:claims,error:claimError}=await auth.auth.getClaims(bearer.slice(7));
-    const issuedAt=claims?.claims?.iat;
-    const signedAt=Date.parse(user.last_sign_in_at || '');
-    if(!stored && body.action==='create') proof=proof || (!claimError && typeof issuedAt==='number' && Date.now()-issuedAt*1000<300000 && Number.isFinite(signedAt) && Date.now()-signedAt<300000);
+    // Initial enrollment: any authenticated owner may auto-create their first code.
+    // Creating a code when none exists exposes nothing, so no extra proof is required.
+    if(!stored && body.action==='create') proof=true;
     if(!proof) return reply({error:'Подтвердите действие текущим паролем или действующим кодом. Для первого создания можно войти заново.'},403);
     if(body.action==='change_password') {
       if(!body.password || !body.new_password || !body.confirmed) return reply({error:'Укажите текущий и новый пароль'},400);

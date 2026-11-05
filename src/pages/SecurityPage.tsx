@@ -44,7 +44,18 @@ export default function SecurityPage() {
     if(loading) return;
     if(!user) { navigate('/auth?next=/settings/security',{replace:true}); return; }
     let alive=true;
-    securityRequest('status').then(result=>{if(alive) setStatus(result);}).catch(e=>{if(alive) setMessage(e.message);});
+    securityRequest('status').then(async result=>{
+      if(!alive) return;
+      setStatus(result);
+      if(!result.exists) {
+        try {
+          const created=await securityRequest('create',{confirmed:true,revision:0});
+          if(!alive) return;
+          setCode(created.code); setStatus({exists:true,revision:created.revision});
+          setMessage('Код безопасности создан автоматически. Сохраните его в надёжном месте — потом он будет скрыт.');
+        } catch(e) { if(alive) setMessage(e instanceof Error?e.message:'Не удалось создать код автоматически'); }
+      }
+    }).catch(e=>{if(alive) setMessage(e.message);});
     supabase.from('account_security_events').select('id,event_type,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(30).then(({data})=>{if(alive)setEvents(data || []);});
     supabase.from('account_recovery_requests').select('id,status,response,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(10).then(({data})=>{if(alive)setRequests(data || []);});
     return ()=>{alive=false;};
@@ -89,7 +100,7 @@ export default function SecurityPage() {
     <header className="space-y-2"><ShieldCheck className="h-8 w-8 text-primary"/><h1 className="text-2xl font-bold">Код безопасности</h1><p className="text-muted-foreground">Действует бессрочно, пока вы не замените его. Сохраните код в надёжном месте.</p></header>
     {message && <p role="status" className="border-l-2 border-primary pl-3 text-sm break-words">{message}</p>}
     <section className="space-y-4">
-      <p className="text-sm text-muted-foreground">{!status?'Проверяем состояние защиты…':status.exists?'Код уже создан. По умолчанию он скрыт.':'Защита ещё не включена. Создайте свой уникальный код.'}</p>
+      <p className="text-sm text-muted-foreground">{!status?'Проверяем состояние защиты…':status.exists?'Код уже создан. По умолчанию он скрыт.':'Создаём ваш уникальный код автоматически…'}</p>
       <div className="flex items-start gap-2 border border-border rounded-md p-3 min-h-14">
         <output aria-label="Текущий код безопасности" className="font-mono break-all flex-1 min-w-0">{code || (status?.exists?'••••••••••••••••••••••••':'Код ещё не создан')}</output>
         {status?.exists && <Button variant="ghost" size="icon" aria-label={code?'Скрыть код':'Показать код'} title={code?'Скрыть код':'Показать код'} disabled={busy} onClick={()=>code?setCode(''):operate('reveal')}>{code?<EyeOff className="h-4 w-4"/>:<Eye className="h-4 w-4"/>}</Button>}
@@ -99,7 +110,7 @@ export default function SecurityPage() {
         <label className="flex items-center gap-2"><input type="radio" name="proof" checked={proofType==='password'} onChange={()=>{setProofType('password');setProof('');}}/>Текущий пароль</label>
         <label className="flex items-center gap-2"><input type="radio" name="proof" checked={proofType==='code'} onChange={()=>{setProofType('code');setProof('');}}/>Действующий код</label>
       </div><Input type="password" autoComplete="off" aria-label={proofType==='password'?'Пароль для подтверждения':'Код для подтверждения'} value={proof} onChange={e=>setProof(e.target.value)} placeholder={proofType==='password'?'Текущий пароль':'Действующий код без изменений'}/></fieldset>
-      <p className="text-xs text-muted-foreground">Для первого создания можно войти заново и создать код в течение 5 минут. Показ и замена требуют текущий пароль или код.</p>
+      <p className="text-xs text-muted-foreground">Код создаётся автоматически при первом открытии этой страницы. Показ и замена требуют текущий пароль или код.</p>
       <Button disabled={busy || !status} onClick={()=>setConfirm(status?.exists?'rotate':'create')} className="w-full sm:w-auto whitespace-normal"><RefreshCw className="h-4 w-4 mr-2 shrink-0"/>{status?.exists?'Сгенерировать новый код':'Создать код безопасности'}</Button>
       <p className="text-sm text-muted-foreground">После успешной замены предыдущий код перестанет работать. При ошибке он останется действительным. Пробелы, регистр и каждый символ имеют значение.</p>
       <p className="text-sm text-muted-foreground">Вход только по коду пока не поддерживается. Код используется для подтверждения обращения о восстановлении.</p>
