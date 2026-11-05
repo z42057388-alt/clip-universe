@@ -44,7 +44,18 @@ export default function SecurityPage() {
     if(loading) return;
     if(!user) { navigate('/auth?next=/settings/security',{replace:true}); return; }
     let alive=true;
-    securityRequest('status').then(result=>{if(alive) setStatus(result);}).catch(e=>{if(alive) setMessage(e.message);});
+    securityRequest('status').then(async result=>{
+      if(!alive) return;
+      setStatus(result);
+      if(!result.exists) {
+        try {
+          const created=await securityRequest('create',{confirmed:true,revision:0});
+          if(!alive) return;
+          setCode(created.code); setStatus({exists:true,revision:created.revision});
+          setMessage('Код безопасности создан автоматически. Сохраните его в надёжном месте — потом он будет скрыт.');
+        } catch(e) { if(alive) setMessage(e instanceof Error?e.message:'Не удалось создать код автоматически'); }
+      }
+    }).catch(e=>{if(alive) setMessage(e.message);});
     supabase.from('account_security_events').select('id,event_type,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(30).then(({data})=>{if(alive)setEvents(data || []);});
     supabase.from('account_recovery_requests').select('id,status,response,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(10).then(({data})=>{if(alive)setRequests(data || []);});
     return ()=>{alive=false;};
