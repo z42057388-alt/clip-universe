@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Replace password/code proof controls with account-bound email-link verification for code reveal/rotation and session termination
+- [x] Replace password/code proof controls with account-bound email-link verification for code reveal/rotation and session termination; keep only email entry, never authorize by an address alone
 - [ ] Verify email proof rejection rules and authenticated UI; actual mailbox link completion requires mailbox access
 
 - [x] Account security: permanent unique recovery codes, encrypted private settings and atomic confirmed rotation
