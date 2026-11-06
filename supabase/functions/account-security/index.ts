@@ -3,10 +3,7 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@4';
 import { generateCode, validCode, digest, encryptCode, decryptCode } from './crypto.ts';
 import { hasRecentEmailProof } from './email-proof.ts';
-
-function allowedOrigin(origin: string) {
-  return origin==='https://clip-universe.lovable.app' || origin==='http://localhost:8080' || /^https:\/\/id-preview--[a-z0-9-]+\.lovable\.app$/.test(origin);
-}
+import { allowedOrigin } from './origins.ts';
 const Body = z.object({
   action:z.enum(['status','send_email_proof','create','rotate','reveal','recover','device','support','revoke_sessions','change_password','review_request']),
   email:z.string().email().max(1000).optional(),
