@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Automatic email OTP verification and authenticated account redirect; real email request and automatic invalid-code rejection verified
+- [ ] Successful email OTP login completion — blocked: access to mailbox code unavailable; default email may contain a link rather than digits
+
 - [x] Fix security requests from this project's managed preview origins; authenticated status returns 200 from preview, unrelated sites remain rejected with 403
 
 - [x] Replace password/code proof controls with account-bound email-link verification for code reveal/rotation and session termination; keep only email entry, never authorize by an address alone

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { EmailCodeLogin } from '@/components/EmailCodeLogin';
 
 function safeNext(raw: string | null): string | null {
   if (!raw) return null;
@@ -27,7 +28,7 @@ export const AuthPage = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session && next) navigate(next, { replace: true });
+      if (session) navigate(next || '/', { replace: true });
     });
     return () => subscription.unsubscribe();
   }, [next, navigate]);
@@ -100,6 +101,7 @@ export const AuthPage = () => {
             {loading ? "Загрузка..." : isLogin ? "Войти" : "Зарегистрироваться"}
           </Button>
         </form>
+        {isLogin && <EmailCodeLogin onSuccess={() => navigate(next || '/', { replace: true })} />}
         <div className="flex items-center gap-3 my-4">
           <Separator className="flex-1" />
           <span className="text-xs text-muted-foreground">ИЛИ</span>
