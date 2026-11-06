@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Fix security requests from this project's managed preview origins and verify rejection of unrelated sites
+- [x] Fix security requests from this project's managed preview origins; authenticated status returns 200 from preview, unrelated sites remain rejected with 403
 
 - [x] Replace password/code proof controls with account-bound email-link verification for code reveal/rotation and session termination; keep only email entry, never authorize by an address alone
 - [x] Verify email proof rejection rules, authenticated UI, wrong-email refusal and real email send request
